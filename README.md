@@ -41,13 +41,14 @@ Release files are written to `build/artifacts/release`.
 
 ## GitHub Build
 
-Pushing to GitHub runs `.github/workflows/build.yml`. Pull requests build packages only. Pushes and manual runs build packages, the local APT repository, the ISO, release artifacts, and the GHCR package.
+Pushing to GitHub runs `.github/workflows/build.yml`. Pull requests build packages only. Pushes and manual runs build packages, the local APT repository, and the ISO.
 
-Successful builds publish the generated APT repository as a GHCR package so it appears under the repository Packages page. Tagged builds create a GitHub Release containing ISO files, release metadata, and generated `.deb` package artifacts. Manual `workflow_dispatch` runs also publish a prerelease named `build-latest` with the same downloadable files.
+The ISO is uploaded to SourceForge. No `.deb` artifacts are published from the workflow.
 
-Download the ISO from the repository's Releases page, not the Packages page:
+ISO files are published to SourceForge instead of GitHub Releases:
 
-- `https://github.com/<owner>/<repo>/releases`
+- `SOURCEFORGE_UPLOAD_TARGET`: SSH/rsync target for the ISO upload directory
+- `SOURCEFORGE_SSH_PRIVATE_KEY`: optional private key for SourceForge upload access
 
 The ISO ships a lightweight base GUI plus a first-login desktop chooser. The chosen desktop environment is installed on the user's system or VM after setup, so only the selected desktop is downloaded at that stage.
 

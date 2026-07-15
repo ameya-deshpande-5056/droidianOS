@@ -9,6 +9,7 @@ systemd
 network-manager
 pipewire
 wireplumber
+flatpak
 waydroid
 zenity
 libnotify-bin

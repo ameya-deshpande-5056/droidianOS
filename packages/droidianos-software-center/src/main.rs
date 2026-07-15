@@ -22,6 +22,8 @@ fn run() -> io::Result<()> {
         match action.as_deref() {
             Some("Installed applications") => show_installed_apps()?,
             Some("Search system packages") => search_apt_packages()?,
+            Some("Search Flatpak applications") => search_flatpak_apps()?,
+            Some("Update Flatpak applications") => update_flatpak_apps()?,
             Some("Install APK file") => install_apk_file()?,
             Some("Quit") | None => return Ok(()),
             Some(_) => {}
@@ -44,6 +46,8 @@ fn choose_action() -> io::Result<Option<String>> {
                 "Action",
                 "Installed applications",
                 "Search system packages",
+                "Search Flatpak applications",
+                "Update Flatpak applications",
                 "Install APK file",
                 "Quit",
             ]),
@@ -103,6 +107,7 @@ fn show_installed_apps() -> io::Result<()> {
 fn installed_apps() -> Vec<App> {
     let mut apps = Vec::new();
     apps.extend(installed_apt_apps());
+    apps.extend(installed_flatpak_apps());
     apps.extend(installed_android_apps());
     apps.sort_by(|left, right| left.name.to_lowercase().cmp(&right.name.to_lowercase()));
     apps
@@ -129,6 +134,34 @@ fn installed_apt_apps() -> Vec<App> {
             source: "deb".to_string(),
             name: package.to_string(),
             id: package.to_string(),
+        });
+    }
+
+    apps
+}
+
+fn installed_flatpak_apps() -> Vec<App> {
+    let output = Command::new("flatpak")
+        .args(["list", "--app", "--columns=application,name"])
+        .output();
+    let output = match output {
+        Ok(output) if output.status.success() => output,
+        _ => return Vec::new(),
+    };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut apps = Vec::new();
+
+    for line in stdout.lines() {
+        let mut parts = line.split('\t');
+        let id = match parts.next() {
+            Some(id) if !id.is_empty() => id,
+            _ => continue,
+        };
+        let name = parts.next().filter(|name| !name.is_empty()).unwrap_or(id);
+        apps.push(App {
+            source: "flatpak".to_string(),
+            name: name.to_string(),
+            id: id.to_string(),
         });
     }
 
@@ -209,6 +242,7 @@ fn selected_app(apps: &[App], selected: &str) -> Option<App> {
 fn remove_app(app: &App) -> io::Result<()> {
     let status = match app.source.as_str() {
         "apk" => Command::new("waydroid").args(["app", "remove", &app.id]).status()?,
+        "flatpak" => Command::new("flatpak").args(["uninstall", "-y", &app.id]).status()?,
         _ => Command::new("pkexec")
             .args(["apt-get", "remove", "-y", &app.id])
             .status()?,
@@ -270,6 +304,99 @@ fn search_apt_packages() -> io::Result<()> {
         }
     }
 
+    Ok(())
+}
+
+fn search_flatpak_apps() -> io::Result<()> {
+    let query = match entry("Search Flatpak applications", "Search term:")? {
+        Some(query) if !query.trim().is_empty() => query,
+        _ => return Ok(()),
+    };
+    let results = flatpak_search(&query);
+    if results.is_empty() {
+        show_info("Search Results", "No Flatpak applications found.");
+        return Ok(());
+    }
+
+    let mut command = Command::new("zenity");
+    command.args([
+        "--list",
+        "--title",
+        "Flatpak Search Results",
+        "--width",
+        "900",
+        "--height",
+        "600",
+        "--print-column",
+        "1",
+        "--column",
+        "Application ID",
+        "--column",
+        "Name",
+        "--column",
+        "Description",
+    ]);
+    for app in &results {
+        command.arg(&app.id).arg(&app.name).arg(&app.source);
+    }
+
+    let app_id = match zenity_output(&mut command)? {
+        Some(app_id) => app_id,
+        None => return Ok(()),
+    };
+
+    if confirm("Install Flatpak", &format!("Install {}?", app_id))? {
+        let status = Command::new("flatpak")
+            .args(["install", "-y", "flathub", &app_id])
+            .status()?;
+        if !status.success() {
+            return Err(io::Error::new(io::ErrorKind::Other, "Flatpak install failed"));
+        }
+    }
+
+    Ok(())
+}
+
+fn flatpak_search(query: &str) -> Vec<App> {
+    let output = Command::new("flatpak")
+        .args(["search", "--columns=application,name,description", query])
+        .output();
+    let output = match output {
+        Ok(output) if output.status.success() => output,
+        _ => return Vec::new(),
+    };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut results = Vec::new();
+
+    for line in stdout.lines().take(100) {
+        let mut parts = line.split('\t');
+        let id = match parts.next() {
+            Some(id) if !id.is_empty() => id,
+            _ => continue,
+        };
+        let name = parts.next().filter(|name| !name.is_empty()).unwrap_or(id);
+        let description = parts.next().unwrap_or("");
+        results.push(App {
+            source: description.to_string(),
+            name: name.to_string(),
+            id: id.to_string(),
+        });
+    }
+
+    results
+}
+
+fn update_flatpak_apps() -> io::Result<()> {
+    if !confirm("Update Flatpak Applications", "Update all Flatpak applications?")? {
+        return Ok(());
+    }
+
+    let status = Command::new("flatpak").args(["update", "-y"]).status()?;
+    if !status.success() {
+        return Err(io::Error::new(io::ErrorKind::Other, "Flatpak update failed"));
+    }
+
+    show_info("Update Flatpak Applications", "Flatpak applications updated.");
     Ok(())
 }
 

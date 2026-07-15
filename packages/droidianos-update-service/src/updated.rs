@@ -93,6 +93,7 @@ fn handle_message(
 fn collect_updates() -> Vec<UpdateItem> {
     let mut updates = Vec::new();
     updates.extend(apt_updates());
+    updates.extend(flatpak_updates());
     updates.extend(android_image_updates());
     updates
 }
@@ -131,6 +132,36 @@ fn apt_updates() -> Vec<UpdateItem> {
     updates
 }
 
+fn flatpak_updates() -> Vec<UpdateItem> {
+    let output = Command::new("flatpak")
+        .args(["remote-ls", "--updates", "--columns=application,version"])
+        .output();
+    let output = match output {
+        Ok(output) if output.status.success() => output,
+        _ => return Vec::new(),
+    };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut updates = Vec::new();
+
+    for line in stdout.lines() {
+        let mut parts = line.split('\t');
+        let app_id = match parts.next() {
+            Some(value) if !value.is_empty() => value,
+            _ => continue,
+        };
+        let version = parts.next().unwrap_or("");
+        updates.push(UpdateItem {
+            id: format!("flatpak:{}", app_id),
+            name: app_id.to_string(),
+            source: "flatpak".to_string(),
+            current_version: "".to_string(),
+            new_version: version.to_string(),
+        });
+    }
+
+    updates
+}
+
 fn android_image_updates() -> Vec<UpdateItem> {
     Vec::new()
 }
@@ -148,7 +179,15 @@ fn apply_all_updates(
         return Err(io::Error::new(io::ErrorKind::Other, "APT update failed"));
     }
 
-    set_transaction(connection, transactions, id, "apply", "running", 70, "Updating application support image");
+    set_transaction(connection, transactions, id, "apply", "running", 60, "Updating Flatpak applications");
+    let flatpak_status = Command::new("flatpak").args(["update", "-y"]).status();
+    if let Ok(status) = flatpak_status {
+        if !status.success() {
+            return Err(io::Error::new(io::ErrorKind::Other, "Flatpak update failed"));
+        }
+    }
+
+    set_transaction(connection, transactions, id, "apply", "running", 85, "Updating application support image");
     let _ = Command::new("waydroid").arg("upgrade").status();
     Ok(())
 }

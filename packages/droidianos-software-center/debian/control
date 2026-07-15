@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: droidianos-software-center
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, apt, droidianos-apk-installer, droidianos-integrationd, pkexec, waydroid, zenity
+Depends: ${misc:Depends}, ${shlibs:Depends}, apt, flatpak, droidianos-apk-installer, droidianos-integrationd, pkexec, waydroid, zenity
 Description: unified software center MVP
- Minimal application manager for APT and APK applications.
+ Minimal application manager for APT, Flatpak, and APK applications.
