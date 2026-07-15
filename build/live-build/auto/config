@@ -4,6 +4,7 @@ set -e
 lb config noauto \
   --distribution bookworm \
   --archive-areas "main contrib non-free-firmware" \
+  --bootstrap-include "ca-certificates" \
   --debian-installer live \
   --debian-installer-gui true \
   --bootappend-live "boot=live components quiet splash" \
