@@ -45,6 +45,10 @@ Pushing to GitHub runs `.github/workflows/build.yml`. Pull requests build packag
 
 Successful builds publish the generated APT repository as a GHCR package so it appears under the repository Packages page. Tagged builds create a GitHub Release containing ISO files, release metadata, and generated `.deb` package artifacts. Manual `workflow_dispatch` runs also publish a prerelease named `build-latest` with the same downloadable files.
 
+Download the ISO from the repository's Releases page, not the Packages page:
+
+- `https://github.com/<owner>/<repo>/releases`
+
 Required repository secret:
 
 - `WAYDROID_APT_SOURCE`: APT source line that provides the `waydroid` package for Debian Bookworm live-build.
