@@ -31,6 +31,6 @@ find "$PACKAGE_DIR" -maxdepth 1 -type f -name '*.deb' -exec cp {} "$LIVE_BUILD_D
   lb build
 )
 
-find "$LIVE_BUILD_DIR" -maxdepth 1 -type f \( -name '*.iso' -o -name '*.hybrid.iso' \) -exec cp {} "$ARTIFACT_DIR"/ \;
+find "$LIVE_BUILD_DIR" -maxdepth 1 -type f -name '*.iso' -exec mv -f {} "$ARTIFACT_DIR"/ \;
 
 echo "$ARTIFACT_DIR"

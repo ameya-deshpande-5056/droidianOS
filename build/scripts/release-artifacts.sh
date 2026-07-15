@@ -12,14 +12,13 @@ if [ ! -d "$ISO_DIR" ]; then
 fi
 
 mkdir -p "$RELEASE_DIR"
-find "$ISO_DIR" -maxdepth 1 -type f \( -name '*.iso' -o -name '*.hybrid.iso' \) -exec cp {} "$RELEASE_DIR"/ \;
 
 : > "$CHECKSUM_FILE"
 found_iso=0
-for iso in "$RELEASE_DIR"/*.iso "$RELEASE_DIR"/*.hybrid.iso; do
+for iso in "$ISO_DIR"/*.iso; do
   [ -f "$iso" ] || continue
   found_iso=1
-  (cd "$RELEASE_DIR" && sha256sum "$(basename "$iso")") >> "$CHECKSUM_FILE"
+  (cd "$ISO_DIR" && sha256sum "$(basename "$iso")") >> "$CHECKSUM_FILE"
 done
 
 if [ "$found_iso" -eq 0 ]; then
