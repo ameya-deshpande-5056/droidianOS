@@ -5,7 +5,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  packages: write
 
 jobs:
   iso-build:
@@ -86,12 +87,79 @@ jobs:
           DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
         run: sh ./build/scripts/release-artifacts.sh
 
-      - name: Upload ISO artifacts
+      - name: Prepare publish artifacts
+        run: |
+          mkdir -p build/artifacts/upload build/artifacts/ghcr-apt-repo
+          cp -a build/artifacts/iso build/artifacts/upload/iso
+          cp -a build/artifacts/release build/artifacts/upload/release
+          cp -a build/artifacts/packages build/artifacts/upload/packages
+          cp -a build/artifacts/repo build/artifacts/ghcr-apt-repo/apt-repo
+          cp -a build/artifacts/packages build/artifacts/ghcr-apt-repo/deb-packages
+          cat > build/artifacts/ghcr-apt-repo/Dockerfile <<EOF
+          FROM scratch
+          LABEL org.opencontainers.image.title="droidianOS APT repository"
+          LABEL org.opencontainers.image.description="Generated droidianOS Debian package repository and .deb artifacts"
+          LABEL org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}"
+          COPY apt-repo /apt-repo
+          COPY deb-packages /deb-packages
+          EOF
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: droidianOS-iso
+          name: droidianOS-build
           path: |
-            build/artifacts/iso/
-            build/artifacts/release/
+            build/artifacts/upload/
+            build/artifacts/ghcr-apt-repo/
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: build/artifacts/upload/release/RELEASE_NOTES.md
+          files: |
+            build/artifacts/upload/iso/*
+            build/artifacts/upload/release/*
+            build/artifacts/upload/packages/*.deb
+            build/artifacts/upload/packages/*.changes
+            build/artifacts/upload/packages/*.buildinfo
+
+  publish-apt-repo-package:
+    needs: iso-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-build
+          path: build-artifacts
+
+      - name: Set GHCR package name
+        id: package-name
+        shell: bash
+        run: |
+          owner_repo="${GITHUB_REPOSITORY,,}"
+          owner="${owner_repo%%/*}"
+          repo="${owner_repo#*/}"
+          echo "image=ghcr.io/${owner}/${repo}-apt-repo" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish APT repo package
+        uses: docker/build-push-action@v6
+        with:
+          context: build-artifacts/ghcr-apt-repo
+          push: true
+          tags: |
+            ${{ steps.package-name.outputs.image }}:${{ github.sha }}
+            ${{ steps.package-name.outputs.image }}:latest

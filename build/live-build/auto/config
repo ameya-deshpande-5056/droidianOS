@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-lb config \
+lb config noauto \
   --distribution bookworm \
   --archive-areas "main contrib non-free-firmware" \
   --debian-installer live \
@@ -10,4 +10,3 @@ lb config \
   --iso-application "droidianOS" \
   --iso-publisher "droidianOS" \
   --iso-volume "DROIDIANOS"
-
