@@ -39,9 +39,9 @@ DROIDIANOS_GPG_KEY=<key-id> sh ./build/scripts/release-artifacts.sh
 
 Release files are written to `build/artifacts/release`.
 
-## GitHub ISO Build
+## GitHub Build
 
-Pushing to GitHub runs `.github/workflows/iso-build.yml`.
+Pushing to GitHub runs `.github/workflows/build.yml`. Pull requests build packages only. Pushes and manual runs build packages, the local APT repository, the ISO, release artifacts, and the GHCR package.
 
 Successful builds publish the generated APT repository as a GHCR package so it appears under the repository Packages page. Tagged builds also create a GitHub Release containing ISO files, release metadata, and generated `.deb` package artifacts.
 

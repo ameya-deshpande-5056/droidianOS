@@ -1,7 +1,8 @@
-name: iso-build
+name: build
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -43,6 +44,7 @@ jobs:
             xorriso
 
       - name: Configure Waydroid APT archive
+        if: github.event_name != 'pull_request'
         env:
           WAYDROID_APT_SOURCE: ${{ secrets.WAYDROID_APT_SOURCE }}
           WAYDROID_APT_KEY_ASC: ${{ secrets.WAYDROID_APT_KEY_ASC }}
@@ -62,6 +64,7 @@ jobs:
           fi
 
       - name: Import release signing key
+        if: github.event_name != 'pull_request'
         env:
           DROIDIANOS_GPG_PRIVATE_KEY: ${{ secrets.DROIDIANOS_GPG_PRIVATE_KEY }}
         run: |
@@ -73,21 +76,25 @@ jobs:
         run: sh ./build/scripts/build-packages.sh
 
       - name: Build local APT repository
+        if: github.event_name != 'pull_request'
         env:
           DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
           DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
         run: sh ./build/scripts/build-local-repo.sh
 
       - name: Build ISO
+        if: github.event_name != 'pull_request'
         run: sh ./build/scripts/build-iso.sh
 
       - name: Generate release artifacts
+        if: github.event_name != 'pull_request'
         env:
           DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
           DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
         run: sh ./build/scripts/release-artifacts.sh
 
       - name: Prepare publish artifacts
+        if: github.event_name != 'pull_request'
         run: |
           mkdir -p build/artifacts/upload build/artifacts/ghcr-apt-repo
           cp -a build/artifacts/iso build/artifacts/upload/iso
@@ -105,6 +112,7 @@ jobs:
           EOF
 
       - name: Upload build artifacts
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: droidianOS-build
@@ -127,6 +135,7 @@ jobs:
             build/artifacts/upload/packages/*.buildinfo
 
   publish-apt-repo-package:
+    if: github.event_name != 'pull_request'
     needs: iso-build
     runs-on: ubuntu-latest
     steps:
