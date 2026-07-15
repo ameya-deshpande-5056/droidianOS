@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+
+override_dh_auto_install:
+	install -Dm0755 target/release/droidianos-software-center debian/droidianos-software-center/usr/bin/droidianos-software-center

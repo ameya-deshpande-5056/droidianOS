@@ -1,0 +1,15 @@
+[Unit]
+Description=Initialize Waydroid for droidianOS
+Documentation=file:/usr/share/doc/droidianos-waydroid-image/README.md
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=!/var/lib/droidianos/waydroid-initialized
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/droidianos/waydroid-firstboot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,6 @@
+droidianos-waydroid-image (0.1.0) unstable; urgency=medium
+
+  * Add first-boot Waydroid initialization service.
+  * Add shared-folder policy apply helper.
+
+ -- droidianOS <maintainers@example.invalid>  Wed, 15 Jul 2026 00:00:00 +0000

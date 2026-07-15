@@ -1,0 +1,6 @@
+README.md usr/share/doc/droidianos-integrationd
+usr/bin/droidianos-profile usr/bin
+usr/lib/systemd/user/droidianos-integrationd.service usr/lib/systemd/user
+usr/lib/systemd/user-preset/90-droidianos-integrationd.preset usr/lib/systemd/user-preset
+usr/lib/systemd/user/droidianos-notification-bridge.service usr/lib/systemd/user
+usr/lib/systemd/user-preset/91-droidianos-notification-bridge.preset usr/lib/systemd/user-preset

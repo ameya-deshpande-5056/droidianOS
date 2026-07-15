@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+
+out="${1:-${HOME}/droidianos-diagnostics.tar.gz}"
+workdir="$(mktemp -d)"
+trap 'rm -rf "$workdir"' EXIT
+
+mkdir -p "$workdir"
+
+{
+  echo "droidianOS diagnostics"
+  date -u
+  uname -a
+} > "$workdir/system.txt"
+
+systemctl --user status droidianos-integrationd.service droidianos-apk-installerd.service droidianos-permissionsd.service droidianos-updated.service droidianos-notification-bridge.service --no-pager > "$workdir/user-services.txt" 2>&1 || true
+systemctl status waydroid-container.service --no-pager > "$workdir/waydroid-container.txt" 2>&1 || true
+waydroid status > "$workdir/waydroid-status.txt" 2>&1 || true
+droidianos-integrationd --list > "$workdir/apps.json" 2>&1 || true
+
+if [ -d "${XDG_CONFIG_HOME:-$HOME/.config}/droidianos" ]; then
+  cp -a "${XDG_CONFIG_HOME:-$HOME/.config}/droidianos" "$workdir/config"
+fi
+
+tar -czf "$out" -C "$workdir" .
+echo "$out"
+

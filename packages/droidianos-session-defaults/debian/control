@@ -1,0 +1,13 @@
+Source: droidianos-session-defaults
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-session-defaults
+Architecture: all
+Depends: ${misc:Depends}
+Description: desktop defaults for droidianOS
+ Desktop defaults, MIME registrations, and launcher policies.

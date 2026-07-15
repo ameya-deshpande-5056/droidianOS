@@ -1,0 +1,14 @@
+name: package-build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  package-build:
+    runs-on: debian-stable
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y build-essential devscripts debhelper dpkg-dev libdbus-1-dev
+      - run: sh ./build/scripts/build-packages.sh

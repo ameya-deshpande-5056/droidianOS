@@ -1,0 +1,95 @@
+name: iso-build
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  iso-build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+      options: --privileged
+
+    steps:
+      - name: Install checkout prerequisites
+        run: |
+          apt-get update
+          apt-get install -y ca-certificates git
+
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            apt-utils \
+            build-essential \
+            cargo \
+            debhelper \
+            devscripts \
+            dpkg-dev \
+            gnupg \
+            isolinux \
+            libdbus-1-dev \
+            live-build \
+            rustc \
+            squashfs-tools \
+            syslinux-common \
+            xorriso
+
+      - name: Configure Waydroid APT archive
+        env:
+          WAYDROID_APT_SOURCE: ${{ secrets.WAYDROID_APT_SOURCE }}
+          WAYDROID_APT_KEY_ASC: ${{ secrets.WAYDROID_APT_KEY_ASC }}
+        run: |
+          if [ -z "${WAYDROID_APT_SOURCE:-}" ]; then
+            echo "WAYDROID_APT_SOURCE secret is required because the ISO package list includes waydroid." >&2
+            exit 1
+          fi
+
+          mkdir -p build/live-build/config/archives
+          printf '%s\n' "$WAYDROID_APT_SOURCE" > build/live-build/config/archives/waydroid.list.chroot
+          printf '%s\n' "$WAYDROID_APT_SOURCE" > build/live-build/config/archives/waydroid.list.binary
+
+          if [ -n "${WAYDROID_APT_KEY_ASC:-}" ]; then
+            printf '%s\n' "$WAYDROID_APT_KEY_ASC" > build/live-build/config/archives/waydroid.key.chroot
+            printf '%s\n' "$WAYDROID_APT_KEY_ASC" > build/live-build/config/archives/waydroid.key.binary
+          fi
+
+      - name: Import release signing key
+        env:
+          DROIDIANOS_GPG_PRIVATE_KEY: ${{ secrets.DROIDIANOS_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -n "${DROIDIANOS_GPG_PRIVATE_KEY:-}" ]; then
+            printf '%s\n' "$DROIDIANOS_GPG_PRIVATE_KEY" | gpg --batch --import
+          fi
+
+      - name: Build packages
+        run: sh ./build/scripts/build-packages.sh
+
+      - name: Build local APT repository
+        env:
+          DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
+        run: sh ./build/scripts/build-local-repo.sh
+
+      - name: Build ISO
+        run: sh ./build/scripts/build-iso.sh
+
+      - name: Generate release artifacts
+        env:
+          DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
+        run: sh ./build/scripts/release-artifacts.sh
+
+      - name: Upload ISO artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: droidianOS-iso
+          path: |
+            build/artifacts/iso/
+            build/artifacts/release/
+          if-no-files-found: error
+          retention-days: 14

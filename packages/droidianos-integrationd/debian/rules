@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+
+override_dh_auto_install:
+	install -Dm0755 target/release/droidianos-integrationd debian/droidianos-integrationd/usr/bin/droidianos-integrationd
+	install -Dm0755 target/release/droidianos-launch debian/droidianos-integrationd/usr/bin/droidianos-launch
+	install -Dm0755 target/release/droidianos-notification-bridge debian/droidianos-integrationd/usr/bin/droidianos-notification-bridge
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0755 debian/droidianos-integrationd/usr/bin/droidianos-profile

@@ -1,0 +1,5 @@
+droidianos-session-defaults (0.1.0) unstable; urgency=medium
+
+  * Add menu policy hiding direct Waydroid launcher entries.
+
+ -- droidianOS <maintainers@example.invalid>  Wed, 15 Jul 2026 00:00:00 +0000

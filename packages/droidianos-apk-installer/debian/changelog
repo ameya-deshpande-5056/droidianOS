@@ -1,0 +1,8 @@
+droidianos-apk-installer (0.1.0) unstable; urgency=medium
+
+  * Add APK metadata parser library and inspection CLI.
+  * Add D-Bus installer backend with InspectApk, InstallApk, and GetTransaction.
+  * Add desktop APK installer UI entrypoint and MIME registration.
+  * Add polkit action metadata for APK installation.
+
+ -- droidianOS <maintainers@example.invalid>  Wed, 15 Jul 2026 00:00:00 +0000

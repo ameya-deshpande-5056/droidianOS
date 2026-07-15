@@ -1,0 +1,20 @@
+[package]
+name = "droidianos-integrationd"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+droidianos-dbus-lite = { path = "../../shared/rust-libs/droidianos-dbus-lite" }
+
+[[bin]]
+name = "droidianos-integrationd"
+path = "src/main.rs"
+
+[[bin]]
+name = "droidianos-launch"
+path = "src/launcher.rs"
+
+[[bin]]
+name = "droidianos-notification-bridge"
+path = "src/notification_bridge.rs"

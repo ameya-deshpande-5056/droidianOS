@@ -1,0 +1,13 @@
+[Unit]
+Description=droidianOS notification bridge
+Documentation=file:/usr/share/doc/droidianos-integrationd/README.md
+After=graphical-session.target droidianos-integrationd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/droidianos-notification-bridge
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

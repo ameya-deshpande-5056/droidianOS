@@ -1,0 +1,7 @@
+README.md usr/share/doc/droidianos-waydroid-image
+usr/lib/droidianos/waydroid-firstboot usr/lib/droidianos
+usr/lib/droidianos/apply-shared-folders usr/lib/droidianos
+lib/systemd/system/droidianos-waydroid-firstboot.service lib/systemd/system
+usr/lib/systemd/user/droidianos-shared-folders.service usr/lib/systemd/user
+usr/lib/systemd/user-preset/90-droidianos-shared-folders.preset usr/lib/systemd/user-preset
+usr/share/droidianos/waydroid/README.md usr/share/droidianos/waydroid

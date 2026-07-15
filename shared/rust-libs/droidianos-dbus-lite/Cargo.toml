@@ -1,0 +1,10 @@
+[package]
+name = "droidianos-dbus-lite"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "droidianos_dbus_lite"
+path = "src/lib.rs"
+

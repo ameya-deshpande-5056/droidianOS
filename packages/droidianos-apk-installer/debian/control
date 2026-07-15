@@ -1,0 +1,13 @@
+Source: droidianos-apk-installer
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: cargo, debhelper-compat (= 13), libdbus-1-dev, rustc
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-apk-installer
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, desktop-file-utils, droidianos-integrationd, policykit-1, shared-mime-info, unzip, waydroid, zenity
+Description: APK installer backend
+ APK metadata inspection, installation backend, and desktop file handler.

@@ -1,0 +1,13 @@
+Source: droidianos-software-center
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: cargo, debhelper-compat (= 13), rustc
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-software-center
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, apt, flatpak, droidianos-apk-installer, droidianos-integrationd, pkexec, waydroid, zenity
+Description: unified software center MVP
+ Minimal application manager for APT, Flatpak, and APK applications.

@@ -1,0 +1,15 @@
+task-desktop
+task-gnome-desktop
+systemd
+network-manager
+pipewire
+wireplumber
+flatpak
+waydroid
+zenity
+libnotify-bin
+desktop-file-utils
+shared-mime-info
+policykit-1
+libglib2.0-bin
+python3

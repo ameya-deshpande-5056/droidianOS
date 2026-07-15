@@ -1,0 +1,13 @@
+Source: droidianos-settings
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: cargo, debhelper-compat (= 13), libdbus-1-dev, rustc
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-settings
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libglib2.0-bin, droidianos-apk-installer, droidianos-integrationd, waydroid, zenity
+Description: settings and permissions services
+ Settings MVP and droidianOS permissions service.

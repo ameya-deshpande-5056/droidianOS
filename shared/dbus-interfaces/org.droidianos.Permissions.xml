@@ -1,0 +1,19 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.droidianos.Permissions">
+    <method name="ListPermissions">
+      <arg name="package" type="s" direction="in"/>
+      <arg name="permissions_json" type="s" direction="out"/>
+    </method>
+    <method name="SetPermission">
+      <arg name="package" type="s" direction="in"/>
+      <arg name="permission" type="s" direction="in"/>
+      <arg name="state" type="s" direction="in"/>
+    </method>
+    <signal name="PermissionsChanged">
+      <arg name="package" type="s"/>
+    </signal>
+  </interface>
+</node>
+

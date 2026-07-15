@@ -1,0 +1,23 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.droidianos.Updates">
+    <method name="CheckUpdates">
+      <arg name="transaction_id" type="s" direction="out"/>
+    </method>
+    <method name="ListUpdates">
+      <arg name="updates_json" type="s" direction="out"/>
+    </method>
+    <method name="ApplyUpdates">
+      <arg name="update_ids" type="as" direction="in"/>
+      <arg name="transaction_id" type="s" direction="out"/>
+    </method>
+    <signal name="UpdatesChanged"/>
+    <signal name="UpdateProgress">
+      <arg name="transaction_id" type="s"/>
+      <arg name="percent" type="u"/>
+      <arg name="message" type="s"/>
+    </signal>
+  </interface>
+</node>
+

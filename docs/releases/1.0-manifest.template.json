@@ -1,0 +1,31 @@
+{
+  "release": "1.0",
+  "status": "release-candidate",
+  "base": "Debian Stable",
+  "artifacts": {
+    "iso": "",
+    "checksums": "",
+    "signature": ""
+  },
+  "packages": [
+    "droidianos-session-defaults",
+    "droidianos-integrationd",
+    "droidianos-apk-installer",
+    "droidianos-software-center",
+    "droidianos-settings",
+    "droidianos-update-service",
+    "droidianos-waydroid-image",
+    "droidianos-branding"
+  ],
+  "required_validation": [
+    "package-build",
+    "repo-publish",
+    "iso-build",
+    "iso-boot",
+    "installed-boot",
+    "apk-install-launch",
+    "upgrade-smoke",
+    "diagnostics-export"
+  ]
+}
+

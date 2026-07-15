@@ -1,0 +1,6 @@
+droidianos-software-center (0.1.0) unstable; urgency=medium
+
+  * Add Rust/Zenity Software Center MVP.
+  * Add Flatpak list, search, install, remove, and update support.
+
+ -- droidianOS <maintainers@example.invalid>  Wed, 15 Jul 2026 00:00:00 +0000

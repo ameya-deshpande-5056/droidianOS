@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Application Installer
+Comment=Install application packages
+Exec=droidianos-apk-installer %f
+Icon=system-software-install
+MimeType=application/vnd.android.package-archive;
+Categories=System;
+NoDisplay=true
+StartupNotify=true
+

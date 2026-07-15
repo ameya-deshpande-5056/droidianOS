@@ -1,0 +1,7 @@
+README.md usr/share/doc/droidianos-apk-installer
+usr/lib/systemd/user/droidianos-apk-installerd.service usr/lib/systemd/user
+usr/lib/systemd/user-preset/90-droidianos-apk-installerd.preset usr/lib/systemd/user-preset
+usr/share/applications/droidianos-apk-installer.desktop usr/share/applications
+usr/share/applications/mimeapps.list usr/share/applications
+usr/share/mime/packages/droidianos-apk.xml usr/share/mime/packages
+usr/share/polkit-1/actions/org.droidianos.apk-installer.policy usr/share/polkit-1/actions

@@ -1,0 +1,14 @@
+[Unit]
+Description=droidianOS unified update service
+Documentation=file:/usr/share/doc/droidianos-update-service/README.md
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/droidianos-updated
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+

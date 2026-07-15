@@ -1,0 +1,13 @@
+[package]
+name = "droidianos-update-service"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+droidianos-dbus-lite = { path = "../../shared/rust-libs/droidianos-dbus-lite" }
+
+[[bin]]
+name = "droidianos-updated"
+path = "src/updated.rs"
+

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "folders": [
+    {
+      "path": "/home/user/Downloads",
+      "mode": "read-write"
+    }
+  ]
+}
+

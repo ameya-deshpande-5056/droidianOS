@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Settings
+Comment=Manage droidianOS settings
+Exec=droidianos-settings
+Icon=preferences-system
+Categories=Settings;System;
+StartupNotify=true
+

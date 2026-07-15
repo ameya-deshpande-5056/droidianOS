@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+
+override_dh_auto_install:
+	install -Dm0755 target/release/droidianos-apk-inspect debian/droidianos-apk-installer/usr/bin/droidianos-apk-inspect
+	install -Dm0755 target/release/droidianos-apk-installerd debian/droidianos-apk-installer/usr/bin/droidianos-apk-installerd
+	install -Dm0755 target/release/droidianos-apk-installer debian/droidianos-apk-installer/usr/bin/droidianos-apk-installer

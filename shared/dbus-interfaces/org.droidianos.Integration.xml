@@ -1,0 +1,23 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.droidianos.Integration">
+    <method name="ListApps">
+      <arg name="apps_json" type="s" direction="out"/>
+    </method>
+    <method name="RefreshApps"/>
+    <method name="LaunchApp">
+      <arg name="package" type="s" direction="in"/>
+      <arg name="activity" type="s" direction="in"/>
+    </method>
+    <method name="UninstallApp">
+      <arg name="package" type="s" direction="in"/>
+    </method>
+    <signal name="AppsChanged"/>
+    <signal name="AppStateChanged">
+      <arg name="package" type="s"/>
+      <arg name="state" type="s"/>
+    </signal>
+  </interface>
+</node>
+

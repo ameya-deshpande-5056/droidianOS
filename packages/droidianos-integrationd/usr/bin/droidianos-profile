@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+
+out="${1:-${HOME}/droidianos-profile.txt}"
+
+{
+  echo "droidianOS performance profile"
+  date -u
+  echo
+  echo "## memory"
+  free -h || true
+  echo
+  echo "## process snapshot"
+  ps -eo pid,ppid,comm,%cpu,%mem,rss --sort=-%mem | head -50 || true
+  echo
+  echo "## droidianOS services"
+  systemctl --user status droidianos-integrationd.service droidianos-apk-installerd.service droidianos-permissionsd.service droidianos-updated.service droidianos-notification-bridge.service --no-pager || true
+  echo
+  echo "## waydroid"
+  waydroid status || true
+} > "$out" 2>&1
+
+echo "$out"

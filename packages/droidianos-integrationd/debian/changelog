@@ -1,0 +1,10 @@
+droidianos-integrationd (0.1.0) unstable; urgency=medium
+
+  * Add Rust app registry daemon skeleton.
+  * Generate desktop entries and fallback icons for installed Android apps.
+  * Add droidianos-launch helper.
+  * Implement D-Bus LaunchApp and AppStateChanged signals.
+  * Add notification bridge service.
+  * Add performance profiling tool.
+
+ -- droidianOS <maintainers@example.invalid>  Wed, 15 Jul 2026 00:00:00 +0000

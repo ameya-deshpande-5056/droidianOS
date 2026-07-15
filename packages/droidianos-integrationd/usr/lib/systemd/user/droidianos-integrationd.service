@@ -1,0 +1,14 @@
+[Unit]
+Description=droidianOS app registry integration daemon
+Documentation=file:/usr/share/doc/droidianos-integrationd/README.md
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/droidianos-integrationd --daemon
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+

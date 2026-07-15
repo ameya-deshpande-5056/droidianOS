@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Software Center
+Comment=Install and manage applications
+Exec=droidianos-software-center
+Icon=system-software-install
+Categories=System;PackageManager;
+StartupNotify=true
+

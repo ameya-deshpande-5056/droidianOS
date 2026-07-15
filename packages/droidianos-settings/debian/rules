@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+
+override_dh_auto_install:
+	install -Dm0755 target/release/droidianos-permissionsd debian/droidianos-settings/usr/bin/droidianos-permissionsd
+	install -Dm0755 target/release/droidianos-settings debian/droidianos-settings/usr/bin/droidianos-settings
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod 0755 debian/droidianos-settings/usr/bin/droidianos-diagnostics
+	chmod 0755 debian/droidianos-settings/usr/bin/droidianos-recovery

@@ -1,0 +1,13 @@
+[Unit]
+Description=droidianOS permissions service
+Documentation=file:/usr/share/doc/droidianos-settings/README.md
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/droidianos-permissionsd
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

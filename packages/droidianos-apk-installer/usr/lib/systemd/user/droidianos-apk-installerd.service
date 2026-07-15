@@ -1,0 +1,14 @@
+[Unit]
+Description=droidianOS APK installer backend
+Documentation=file:/usr/share/doc/droidianos-apk-installer/README.md
+After=graphical-session.target droidianos-integrationd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/droidianos-apk-installerd
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+

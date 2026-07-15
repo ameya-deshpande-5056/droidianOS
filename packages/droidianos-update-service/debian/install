@@ -1,0 +1,3 @@
+README.md usr/share/doc/droidianos-update-service
+usr/lib/systemd/user/droidianos-updated.service usr/lib/systemd/user
+usr/lib/systemd/user-preset/90-droidianos-updated.preset usr/lib/systemd/user-preset

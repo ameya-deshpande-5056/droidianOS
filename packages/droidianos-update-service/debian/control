@@ -1,0 +1,13 @@
+Source: droidianos-update-service
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: cargo, debhelper-compat (= 13), libdbus-1-dev, rustc
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-update-service
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, apt, flatpak, pkexec, waydroid
+Description: unified update service
+ Unified update service for APT, Flatpak, and Android image updates.

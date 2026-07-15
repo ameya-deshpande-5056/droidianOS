@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+cat >/etc/apt/sources.list.d/droidianos-local.list <<'EOF'
+deb [trusted=yes] file:/opt/droidianos-repo stable main
+EOF
+
+apt-get update
+

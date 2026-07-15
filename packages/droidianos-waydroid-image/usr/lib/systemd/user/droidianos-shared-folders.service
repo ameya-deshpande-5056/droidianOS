@@ -1,0 +1,11 @@
+[Unit]
+Description=Apply droidianOS shared folder policy
+Documentation=file:/usr/share/doc/droidianos-waydroid-image/README.md
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/droidianos/apply-shared-folders
+
+[Install]
+WantedBy=default.target

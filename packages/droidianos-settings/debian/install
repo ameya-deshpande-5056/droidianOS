@@ -1,0 +1,6 @@
+README.md usr/share/doc/droidianos-settings
+usr/bin/droidianos-diagnostics usr/bin
+usr/bin/droidianos-recovery usr/bin
+usr/lib/systemd/user/droidianos-permissionsd.service usr/lib/systemd/user
+usr/lib/systemd/user-preset/90-droidianos-permissionsd.preset usr/lib/systemd/user-preset
+usr/share/applications/droidianos-settings.desktop usr/share/applications

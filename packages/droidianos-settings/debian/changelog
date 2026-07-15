@@ -1,0 +1,7 @@
+droidianos-settings (0.1.0) unstable; urgency=medium
+
+  * Add permissions service with D-Bus ListPermissions and SetPermission.
+  * Add Settings MVP for permissions, shared folders, and diagnostics.
+  * Add recovery and diagnostics export tools.
+
+ -- droidianOS <maintainers@example.invalid>  Wed, 15 Jul 2026 00:00:00 +0000

@@ -1,0 +1,13 @@
+Source: droidianos-integrationd
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: cargo, debhelper-compat (= 13), libdbus-1-dev, rustc
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-integrationd
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, libnotify-bin, waydroid
+Description: Android desktop integration daemon
+ Maintains Android app registry, launch integration, and notification bridge.

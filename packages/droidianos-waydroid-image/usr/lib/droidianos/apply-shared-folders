@@ -1,0 +1,40 @@
+#!/bin/sh
+set -eu
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+POLICY_FILE="$CONFIG_HOME/droidianos/shared-folders.json"
+
+if [ ! -f "$POLICY_FILE" ]; then
+  exit 0
+fi
+
+if ! command -v waydroid >/dev/null 2>&1; then
+  echo "waydroid command not found" >&2
+  exit 1
+fi
+
+python3 - "$POLICY_FILE" <<'PY'
+import json
+import os
+import subprocess
+import sys
+
+policy_path = sys.argv[1]
+with open(policy_path, "r", encoding="utf-8") as handle:
+    policy = json.load(handle)
+
+home = os.path.realpath(os.path.expanduser("~"))
+folders = policy.get("folders", [])
+
+for folder in folders:
+    path = os.path.realpath(os.path.expanduser(folder))
+    if not path.startswith(home + os.sep):
+        raise SystemExit(f"shared folder outside home is not allowed: {path}")
+    if not os.path.isdir(path):
+        continue
+    name = os.path.basename(path)
+    target = f"/home/shared/{name}"
+    subprocess.run(["waydroid", "prop", "set", f"persist.droidianos.shared.{name}", path], check=False)
+    print(f"{path} -> {target}")
+PY
+

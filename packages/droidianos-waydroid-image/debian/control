@@ -1,0 +1,13 @@
+Source: droidianos-waydroid-image
+Section: misc
+Priority: optional
+Maintainer: droidianOS <maintainers@example.invalid>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: droidianos-waydroid-image
+Architecture: all
+Depends: ${misc:Depends}, python3, systemd, waydroid
+Description: Waydroid image customization skeleton
+ Initializes Waydroid on first boot for droidianOS.
