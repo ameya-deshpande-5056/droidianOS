@@ -53,8 +53,9 @@ jobs:
           fi
 
           mkdir -p build/live-build/config/archives
-          printf '%s\n' "$WAYDROID_APT_SOURCE" > build/live-build/config/archives/waydroid.list.chroot
-          printf '%s\n' "$WAYDROID_APT_SOURCE" > build/live-build/config/archives/waydroid.list.binary
+          waydroid_apt_source="$(printf '%s\n' "$WAYDROID_APT_SOURCE" | sed 's#https://repo\.waydro\.id/#http://repo.waydro.id/#g')"
+          printf '%s\n' "$waydroid_apt_source" > build/live-build/config/archives/waydroid.list.chroot
+          printf '%s\n' "$waydroid_apt_source" > build/live-build/config/archives/waydroid.list.binary
 
           if [ -n "${WAYDROID_APT_KEY_ASC:-}" ]; then
             printf '%s\n' "$WAYDROID_APT_KEY_ASC" > build/live-build/config/archives/waydroid.key.chroot

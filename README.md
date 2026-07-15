@@ -56,6 +56,8 @@ Optional repository secrets:
 - `DROIDIANOS_GPG_KEY`: GPG key ID used for repository and checksum signatures.
 - `DROIDIANOS_GPG_PASSPHRASE`: passphrase for the release signing key, if set.
 
+The ISO workflow rewrites `https://repo.waydro.id/` to `http://repo.waydro.id/` inside live-build to avoid chroot CA bootstrap failures. Repository trust still comes from `WAYDROID_APT_KEY_ASC`.
+
 ## License
 
 MIT. See `LICENSE`.

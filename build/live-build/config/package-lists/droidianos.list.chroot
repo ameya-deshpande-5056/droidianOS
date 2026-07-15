@@ -1,5 +1,6 @@
 task-desktop
 task-gnome-desktop
+ca-certificates
 systemd
 network-manager
 pipewire
