@@ -1,11 +1,14 @@
-task-desktop
-task-gnome-desktop
+gdm3
+lightdm
+lightdm-gtk-greeter
+sddm
+openbox
+xorg
 ca-certificates
 systemd
 network-manager
 pipewire
 wireplumber
-flatpak
 waydroid
 zenity
 libnotify-bin

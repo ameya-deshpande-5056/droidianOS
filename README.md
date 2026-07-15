@@ -49,6 +49,8 @@ Download the ISO from the repository's Releases page, not the Packages page:
 
 - `https://github.com/<owner>/<repo>/releases`
 
+The ISO ships a lightweight base GUI plus a first-login desktop chooser. The chosen desktop environment is installed on the user's system or VM after setup, so only the selected desktop is downloaded at that stage.
+
 Required repository secret:
 
 - `WAYDROID_APT_SOURCE`: APT source line that provides the `waydroid` package for Debian Bookworm live-build.

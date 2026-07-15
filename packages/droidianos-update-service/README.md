@@ -23,8 +23,6 @@ Adapters:
 
 - APT check: `apt list --upgradable`
 - APT apply: `pkexec apt-get upgrade -y`
-- Flatpak check: `flatpak remote-ls --updates`
-- Flatpak apply: `flatpak update -y`
 - Android image apply: `waydroid upgrade`
 
 Current limitation:

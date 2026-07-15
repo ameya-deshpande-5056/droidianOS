@@ -122,6 +122,38 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Prepare release asset list
+        if: github.event_name != 'pull_request'
+        id: release-assets
+        shell: bash
+        run: |
+          max_release_asset_size=$((2147483648 - 1))
+          release_files=()
+
+          shopt -s nullglob
+          for iso in build/artifacts/upload/iso/*.iso; do
+            size=$(stat -c '%s' "$iso")
+            if [ "$size" -lt "$max_release_asset_size" ]; then
+              release_files+=("$iso")
+            else
+              echo "ISO asset too large for GitHub Releases: $iso ($size bytes)" >> "$GITHUB_STEP_SUMMARY"
+              echo "The ISO will stay in the workflow artifact bundle but will not be attached to the GitHub Release." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+
+          release_files+=(
+            build/artifacts/upload/release/*
+            build/artifacts/upload/packages/*.deb
+            build/artifacts/upload/packages/*.changes
+            build/artifacts/upload/packages/*.buildinfo
+          )
+
+          {
+            printf 'files<<EOF\n'
+            printf '%s\n' "${release_files[@]}"
+            printf 'EOF\n'
+          } >> "$GITHUB_OUTPUT"
+
       - name: Publish GitHub Release
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
@@ -131,12 +163,7 @@ jobs:
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
           make_latest: ${{ startsWith(github.ref, 'refs/tags/') }}
           body_path: build/artifacts/upload/release/RELEASE_NOTES.md
-          files: |
-            build/artifacts/upload/iso/*
-            build/artifacts/upload/release/*
-            build/artifacts/upload/packages/*.deb
-            build/artifacts/upload/packages/*.changes
-            build/artifacts/upload/packages/*.buildinfo
+          files: ${{ steps.release-assets.outputs.files }}
 
       - name: Summarize download links
         if: github.event_name != 'pull_request'
@@ -155,6 +182,8 @@ jobs:
             echo "- ISO artifacts are attached to the release as .iso files"
             echo "- Debian package artifacts are attached to the release as .deb, .changes, and .buildinfo files"
           } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::notice title=Release downloads::ISO and package downloads are attached to https://github.com/${GITHUB_REPOSITORY}/releases/tag/${release_tag}"
 
   publish-apt-repo-package:
     if: github.event_name != 'pull_request'

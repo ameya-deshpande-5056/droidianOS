@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/lib/droidianos-desktop-chooser/droidianos-desktop-chooser.py

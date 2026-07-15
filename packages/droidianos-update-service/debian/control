@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: droidianos-update-service
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, apt, flatpak, pkexec, waydroid
+Depends: ${misc:Depends}, ${shlibs:Depends}, apt, pkexec, waydroid
 Description: unified update service
- Unified update service for APT, Flatpak, and Android image updates.
+ Unified update service for APT and Android image updates.

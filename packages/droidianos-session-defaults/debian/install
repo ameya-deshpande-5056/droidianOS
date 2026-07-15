@@ -1,2 +1,6 @@
 README.md usr/share/doc/droidianos-session-defaults
 etc/xdg/menus/applications-merged/droidianos-hide-waydroid.menu etc/xdg/menus/applications-merged
+usr/bin/droidianos-desktop-chooser usr/bin
+usr/lib/droidianos-desktop-chooser droidianos-desktop-chooser
+usr/share/applications/droidianos-desktop-chooser.desktop usr/share/applications
+usr/share/droidianos-desktop-chooser/previews usr/share/droidianos-desktop-chooser
