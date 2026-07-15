@@ -74,6 +74,7 @@ jobs:
       - name: Build local APT repository
         env:
           DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
+          DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
         run: sh ./build/scripts/build-local-repo.sh
 
       - name: Build ISO
@@ -82,6 +83,7 @@ jobs:
       - name: Generate release artifacts
         env:
           DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
+          DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
         run: sh ./build/scripts/release-artifacts.sh
 
       - name: Upload ISO artifacts

@@ -52,6 +52,7 @@ Optional repository secrets:
 - `WAYDROID_APT_KEY_ASC`: ASCII-armored signing key for the Waydroid APT source.
 - `DROIDIANOS_GPG_PRIVATE_KEY`: ASCII-armored release signing private key.
 - `DROIDIANOS_GPG_KEY`: GPG key ID used for repository and checksum signatures.
+- `DROIDIANOS_GPG_PASSPHRASE`: passphrase for the release signing key, if set.
 
 ## License
 

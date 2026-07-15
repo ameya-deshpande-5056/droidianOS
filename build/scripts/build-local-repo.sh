@@ -35,8 +35,13 @@ Description: Local droidianOS build repository
 EOF
   fi
   if [ -n "${DROIDIANOS_GPG_KEY:-}" ]; then
-    gpg --batch --yes --local-user "$DROIDIANOS_GPG_KEY" --detach-sign --armor -o dists/stable/Release.gpg dists/stable/Release
-    gpg --batch --yes --local-user "$DROIDIANOS_GPG_KEY" --clearsign -o dists/stable/InRelease dists/stable/Release
+    if [ -n "${DROIDIANOS_GPG_PASSPHRASE:-}" ]; then
+      gpg --batch --yes --pinentry-mode loopback --passphrase "$DROIDIANOS_GPG_PASSPHRASE" --local-user "$DROIDIANOS_GPG_KEY" --detach-sign --armor -o dists/stable/Release.gpg dists/stable/Release
+      gpg --batch --yes --pinentry-mode loopback --passphrase "$DROIDIANOS_GPG_PASSPHRASE" --local-user "$DROIDIANOS_GPG_KEY" --clearsign -o dists/stable/InRelease dists/stable/Release
+    else
+      gpg --batch --yes --pinentry-mode loopback --local-user "$DROIDIANOS_GPG_KEY" --detach-sign --armor -o dists/stable/Release.gpg dists/stable/Release
+      gpg --batch --yes --pinentry-mode loopback --local-user "$DROIDIANOS_GPG_KEY" --clearsign -o dists/stable/InRelease dists/stable/Release
+    fi
   fi
 )
 

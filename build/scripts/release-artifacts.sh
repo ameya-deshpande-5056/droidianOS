@@ -36,7 +36,11 @@ cp "$ROOT_DIR/docs/releases/1.0-known-issues.md" "$RELEASE_DIR/KNOWN_ISSUES.md"
 cp "$ROOT_DIR/docs/releases/1.0-manifest.template.json" "$RELEASE_DIR/release-manifest.json"
 
 if [ -n "${DROIDIANOS_GPG_KEY:-}" ]; then
-  gpg --batch --yes --local-user "$DROIDIANOS_GPG_KEY" --armor --detach-sign "$CHECKSUM_FILE"
+  if [ -n "${DROIDIANOS_GPG_PASSPHRASE:-}" ]; then
+    gpg --batch --yes --pinentry-mode loopback --passphrase "$DROIDIANOS_GPG_PASSPHRASE" --local-user "$DROIDIANOS_GPG_KEY" --armor --detach-sign "$CHECKSUM_FILE"
+  else
+    gpg --batch --yes --pinentry-mode loopback --local-user "$DROIDIANOS_GPG_KEY" --armor --detach-sign "$CHECKSUM_FILE"
+  fi
 else
   echo "DROIDIANOS_GPG_KEY not set; checksums were not signed" >&2
 fi
