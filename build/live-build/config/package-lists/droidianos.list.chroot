@@ -16,6 +16,6 @@ zenity
 libnotify-bin
 desktop-file-utils
 shared-mime-info
-policykit-1
+pkexec
 libglib2.0-bin
 python3
