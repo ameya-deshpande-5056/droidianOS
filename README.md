@@ -1,5 +1,7 @@
 # droidianOS
 
+![droidianOS logo](packages/droidianos-branding/usr/share/pixmaps/droidianos-logo.svg)
+
 droidianOS is a Debian Stable based desktop distribution that integrates Android applications into the Linux desktop through Waydroid.
 
 Current status: alpha and under active development.

@@ -37,8 +37,8 @@ find "$PACKAGE_DIR" -maxdepth 1 -type f -name '*.deb' -exec cp {} "$LIVE_BUILD_D
   lb build
 )
 
+run_number="${GITHUB_RUN_NUMBER:-local}"
 timestamp="$(date -u +%Y%m%d_%H%M%S)"
-run_id="${GITHUB_RUN_ID:-local}"
-find "$LIVE_BUILD_DIR" -maxdepth 1 -type f -name '*.iso' -exec mv -f {} "$ARTIFACT_DIR/droidianOS-alpha_${timestamp}_${run_id}.iso" \;
+find "$LIVE_BUILD_DIR" -maxdepth 1 -type f -name '*.iso' -exec mv -f {} "$ARTIFACT_DIR/droidianOS-alpha_${run_number}_${timestamp}.iso" \;
 
 echo "$ARTIFACT_DIR"
