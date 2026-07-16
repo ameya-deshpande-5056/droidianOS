@@ -2,6 +2,7 @@ README.md usr/share/doc/droidianos-session-defaults
 etc/xdg/menus/applications-merged/droidianos-hide-waydroid.menu etc/xdg/menus/applications-merged
 etc/xdg/autostart/droidianos-openbox-wallpaper.desktop etc/xdg/autostart
 etc/xdg/labwc/autostart etc/xdg/labwc
+usr/share/wayland-sessions/labwc.desktop usr/share/wayland-sessions
 usr/bin/droidianos-desktop-chooser usr/bin
 usr/lib/droidianos-desktop-chooser droidianos-desktop-chooser
 usr/share/applications/droidianos-desktop-chooser.desktop usr/share/applications
