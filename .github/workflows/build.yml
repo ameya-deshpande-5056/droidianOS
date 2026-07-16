@@ -10,41 +10,125 @@ permissions:
   packages: write
 
 jobs:
-  iso-build:
+  build-packages:
     runs-on: ubuntu-latest
-    container:
+    container: &debian_container
       image: debian:bookworm
       options: --privileged
 
     steps:
-      - name: Install checkout prerequisites
+      - &install_checkout_prerequisites
+        name: Install checkout prerequisites
         run: |
           apt-get update
           apt-get install -y ca-certificates git
 
-      - uses: actions/checkout@v4
+      - &checkout
+        uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install package build dependencies
         run: |
           apt-get update
           apt-get install -y \
-            apt-utils \
             build-essential \
             cargo \
             debhelper \
             devscripts \
             dpkg-dev \
-            gnupg \
-            isolinux \
             libdbus-1-dev \
+            rustc
+
+      - name: Build packages
+        run: sh ./build/scripts/build-packages.sh
+
+      - name: Upload package artifacts
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: droidianOS-packages
+          path: build/artifacts/packages/
+          if-no-files-found: error
+          retention-days: 14
+
+  build-local-repo:
+    if: github.event_name != 'pull_request'
+    needs: build-packages
+    runs-on: ubuntu-latest
+    container: *debian_container
+
+    steps:
+      - *install_checkout_prerequisites
+
+      - *checkout
+
+      - name: Install local repository dependencies
+        run: |
+          apt-get update
+          apt-get install -y apt-utils dpkg-dev gnupg
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-packages
+          path: build/artifacts/packages
+
+      - name: Import release signing key
+        env:
+          DROIDIANOS_GPG_PRIVATE_KEY: ${{ secrets.DROIDIANOS_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -n "${DROIDIANOS_GPG_PRIVATE_KEY:-}" ]; then
+            printf '%s\n' "$DROIDIANOS_GPG_PRIVATE_KEY" | gpg --batch --import
+          fi
+
+      - name: Build local APT repository
+        env:
+          DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
+          DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
+        run: sh ./build/scripts/build-local-repo.sh
+
+      - name: Upload local repository artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: droidianOS-repo
+          path: build/artifacts/repo/
+          if-no-files-found: error
+          retention-days: 14
+
+  build-iso:
+    if: github.event_name != 'pull_request'
+    needs: build-local-repo
+    runs-on: ubuntu-latest
+    container: *debian_container
+
+    steps:
+      - *install_checkout_prerequisites
+
+      - *checkout
+
+      - name: Install ISO build dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            apt-utils \
+            isolinux \
             live-build \
-            rustc \
             squashfs-tools \
             syslinux-common \
             xorriso
 
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-packages
+          path: build/artifacts/packages
+
+      - name: Download local repository artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-repo
+          path: build/artifacts/repo
+
       - name: Configure Waydroid APT archive
-        if: github.event_name != 'pull_request'
         env:
           WAYDROID_APT_SOURCE: ${{ secrets.WAYDROID_APT_SOURCE }}
           WAYDROID_APT_KEY_ASC: ${{ secrets.WAYDROID_APT_KEY_ASC }}
@@ -63,8 +147,40 @@ jobs:
             printf '%s\n' "$WAYDROID_APT_KEY_ASC" > build/live-build/config/archives/waydroid.key.binary
           fi
 
+      - name: Build ISO
+        run: sh ./build/scripts/build-iso.sh
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: droidianOS-iso
+          path: build/artifacts/iso/
+          if-no-files-found: error
+          retention-days: 14
+
+  release-artifacts:
+    if: github.event_name != 'pull_request'
+    needs: build-iso
+    runs-on: ubuntu-latest
+    container: *debian_container
+
+    steps:
+      - *install_checkout_prerequisites
+
+      - *checkout
+
+      - name: Install release artifact dependencies
+        run: |
+          apt-get update
+          apt-get install -y gnupg
+
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-iso
+          path: build/artifacts/iso
+
       - name: Import release signing key
-        if: github.event_name != 'pull_request'
         env:
           DROIDIANOS_GPG_PRIVATE_KEY: ${{ secrets.DROIDIANOS_GPG_PRIVATE_KEY }}
         run: |
@@ -72,45 +188,58 @@ jobs:
             printf '%s\n' "$DROIDIANOS_GPG_PRIVATE_KEY" | gpg --batch --import
           fi
 
-      - name: Build packages
-        run: sh ./build/scripts/build-packages.sh
-
-      - name: Build local APT repository
-        if: github.event_name != 'pull_request'
-        env:
-          DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
-          DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
-        run: sh ./build/scripts/build-local-repo.sh
-
-      - name: Build ISO
-        if: github.event_name != 'pull_request'
-        run: sh ./build/scripts/build-iso.sh
-
       - name: Generate release artifacts
-        if: github.event_name != 'pull_request'
         env:
           DROIDIANOS_GPG_KEY: ${{ secrets.DROIDIANOS_GPG_KEY }}
           DROIDIANOS_GPG_PASSPHRASE: ${{ secrets.DROIDIANOS_GPG_PASSPHRASE }}
         run: sh ./build/scripts/release-artifacts.sh
 
-      - name: Prepare publish artifacts
-        if: github.event_name != 'pull_request'
-        run: |
-          mkdir -p build/artifacts/upload
-          cp -a build/artifacts/iso build/artifacts/upload/iso
-
-      - name: Upload build artifacts
-        if: github.event_name != 'pull_request'
+      - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: droidianOS-build
-          path: |
-            build/artifacts/upload/
+          name: droidianOS-release
+          path: build/artifacts/release/
           if-no-files-found: error
           retention-days: 14
 
+  archive-build:
+    if: github.event_name != 'pull_request'
+    needs: release-artifacts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download ISO artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-iso
+          path: build/artifacts/upload/iso
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: droidianOS-build
+          path: build/artifacts/upload/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-sourceforge:
+    if: github.event_name != 'pull_request'
+    needs: archive-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install SourceForge upload dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-client rsync
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: droidianOS-build
+          path: build/artifacts/upload
+
       - name: Publish SourceForge ISO
-        if: github.event_name != 'pull_request'
         env:
           SOURCEFORGE_UPLOAD_TARGET: ${{ secrets.SOURCEFORGE_UPLOAD_TARGET }}
           SOURCEFORGE_SSH_PRIVATE_KEY: ${{ secrets.SOURCEFORGE_SSH_PRIVATE_KEY }}
@@ -119,23 +248,29 @@ jobs:
             echo "SOURCEFORGE_UPLOAD_TARGET secret is required to publish the ISO to SourceForge." >&2
             exit 1
           fi
+          if [ -z "${SOURCEFORGE_SSH_PRIVATE_KEY:-}" ]; then
+            echo "SOURCEFORGE_SSH_PRIVATE_KEY secret is required to publish the ISO to SourceForge." >&2
+            exit 1
+          fi
 
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
-          if [ -n "${SOURCEFORGE_SSH_PRIVATE_KEY:-}" ]; then
-            printf '%s\n' "$SOURCEFORGE_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
-            chmod 600 "$HOME/.ssh/id_ed25519"
-          fi
+          printf '%s\n' "$SOURCEFORGE_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
 
-          ssh_opts="-o StrictHostKeyChecking=accept-new"
-          if [ -f "$HOME/.ssh/id_ed25519" ]; then
-            ssh_opts="$ssh_opts -i $HOME/.ssh/id_ed25519"
-          fi
+          ssh_opts="-o StrictHostKeyChecking=accept-new -o BatchMode=yes -o IdentitiesOnly=yes -i $HOME/.ssh/id_ed25519"
 
           rsync -av --delete -e "ssh $ssh_opts" build/artifacts/upload/iso/ "${SOURCEFORGE_UPLOAD_TARGET}"
 
+  summarize-download-links:
+    if: github.event_name != 'pull_request'
+    needs: publish-sourceforge
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Summarize download links
-        if: github.event_name != 'pull_request'
+        env:
+          SOURCEFORGE_UPLOAD_TARGET: ${{ secrets.SOURCEFORGE_UPLOAD_TARGET }}
         shell: bash
         run: |
           {

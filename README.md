@@ -48,7 +48,7 @@ The ISO is uploaded to SourceForge. No `.deb` artifacts are published from the w
 ISO files are published to SourceForge instead of GitHub Releases:
 
 - `SOURCEFORGE_UPLOAD_TARGET`: SSH/rsync target for the ISO upload directory
-- `SOURCEFORGE_SSH_PRIVATE_KEY`: optional private key for SourceForge upload access
+- `SOURCEFORGE_SSH_PRIVATE_KEY`: private key for SourceForge upload access
 
 The ISO ships a lightweight base GUI plus a first-login desktop chooser. The chosen desktop environment is installed on the user's system or VM after setup, so only the selected desktop is downloaded at that stage.
 
