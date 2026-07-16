@@ -274,7 +274,7 @@ jobs:
 
           ssh_opts="-o StrictHostKeyChecking=accept-new -o BatchMode=yes -o IdentitiesOnly=yes -i $HOME/.ssh/id_ed25519"
 
-          rsync -av --delete -e "ssh $ssh_opts" build/artifacts/upload/iso/ "${SOURCEFORGE_UPLOAD_TARGET}"
+          rsync -av --ignore-existing -e "ssh $ssh_opts" build/artifacts/upload/iso/ "${SOURCEFORGE_UPLOAD_TARGET}"
 
   summarize-download-links:
     if: github.event_name != 'pull_request'
