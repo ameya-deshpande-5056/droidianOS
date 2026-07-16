@@ -10,6 +10,8 @@ Current status: alpha and under active development.
 
 - Builds against the Debian release identified as Stable at ISO build time.
 - Uses a lightweight Labwc/Wayland base session with a first-login desktop chooser.
+- Boots into a branded droidianOS installer hub on the live image, which explains the full setup flow before launching the underlying installer backend.
+- Presents the installer hub and first-login desktop chooser with a shared branded GTK visual style.
 - Offers GNOME, KDE Plasma, Xfce, Cinnamon, LXQt, LXDE, and Openbox as installable desktop choices instead of embedding every desktop in the ISO.
 - Embeds checksum-verified official Waydroid GAPPS system and MAINLINE vendor images.
 - Initializes Waydroid during OS installation and verifies its container before the first graphical login.
@@ -59,6 +61,14 @@ sh ./build/scripts/build-iso.sh
 ```
 
 The ISO build resolves the current Debian Stable codename, configures the corresponding official Waydroid APT archive, and downloads the latest verified x86-64 GAPPS and MAINLINE images. ISO artifacts are written to `build/artifacts/iso`.
+
+The live image boots into the droidianOS installer hub first, then proceeds into installation and first-login setup:
+
+- install the base system
+- initialize Waydroid and verify the container
+- reboot into the installed system
+- choose a desktop environment on first login
+- optionally install Flatpak support from the desktop chooser
 
 ## Release
 

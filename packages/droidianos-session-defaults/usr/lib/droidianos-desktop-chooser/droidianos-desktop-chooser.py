@@ -9,7 +9,19 @@ from dataclasses import dataclass
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GdkPixbuf  # noqa: E402
+from gi.repository import Gtk, GdkPixbuf, Gdk  # noqa: E402
+
+
+CSS_PATH = "/usr/share/droidianos-session-defaults/droidianos-ui.css"
+
+
+def load_css() -> None:
+    provider = Gtk.CssProvider()
+    provider.load_from_path(CSS_PATH)
+    screen = Gdk.Screen.get_default()
+    if screen is None:
+        return
+    Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 @dataclass(frozen=True)
@@ -38,22 +50,49 @@ OPTIONS = [
 class DesktopChooser(Gtk.Window):
     def __init__(self) -> None:
         super().__init__(title="Choose your desktop")
-        self.set_default_size(980, 560)
+        self.set_default_size(1100, 720)
         self.set_border_width(18)
         self.connect("destroy", Gtk.main_quit)
+        self.get_style_context().add_class("droidianos-window")
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         self.add(root)
 
-        title = Gtk.Label(label="Pick the desktop environment you want installed after setup.")
-        title.set_xalign(0.0)
-        title.get_style_context().add_class("title-3")
-        root.pack_start(title, False, False, 0)
+        hero = Gtk.Frame()
+        hero.get_style_context().add_class("droidianos-hero")
+        root.pack_start(hero, False, False, 0)
 
-        subtitle = Gtk.Label(label="Each choice includes a screenshot preview and a short description.")
+        hero_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        hero_box.set_border_width(16)
+        hero.add(hero_box)
+
+        logo = Gtk.Image()
+        logo.set_from_file("/usr/share/pixmaps/droidianos-logo.svg")
+        hero_box.pack_start(logo, False, False, 0)
+
+        hero_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        hero_box.pack_start(hero_text, True, True, 0)
+
+        kicker = Gtk.Label(label="First boot setup")
+        kicker.set_xalign(0.0)
+        kicker.get_style_context().add_class("droidianos-kicker")
+        hero_text.pack_start(kicker, False, False, 0)
+
+        title = Gtk.Label(label="droidianOS desktop setup")
+        title.set_xalign(0.0)
+        title.get_style_context().add_class("droidianos-display")
+        hero_text.pack_start(title, False, False, 0)
+
+        subtitle = Gtk.Label(
+            label=(
+                "This runs after the base system is installed and the machine reboots into droidianOS.\n"
+                "Each choice includes a screenshot preview and a short description."
+            )
+        )
         subtitle.set_xalign(0.0)
         subtitle.set_line_wrap(True)
-        root.pack_start(subtitle, False, False, 0)
+        subtitle.get_style_context().add_class("droidianos-subtitle")
+        hero_text.pack_start(subtitle, False, False, 0)
 
         scroller = Gtk.ScrolledWindow()
         scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -62,6 +101,17 @@ class DesktopChooser(Gtk.Window):
         box = Gtk.ListBox()
         box.set_selection_mode(Gtk.SelectionMode.SINGLE)
         scroller.add(box)
+
+        stepbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        root.pack_start(stepbar, False, False, 0)
+        for idx, label_text in enumerate(["Installed", "Choose desktop", "Complete"], start=1):
+            step = Gtk.Label(label=f"{idx}. {label_text}")
+            step.get_style_context().add_class("droidianos-step")
+            if idx == 2:
+                step.get_style_context().add_class("droidianos-step-active")
+            elif idx == 1:
+                step.get_style_context().add_class("droidianos-step-done")
+            stepbar.pack_start(step, False, False, 0)
 
         for option in OPTIONS:
             row = self._build_row(option)
@@ -76,6 +126,7 @@ class DesktopChooser(Gtk.Window):
         root.pack_start(button_box, False, False, 0)
 
         cancel = Gtk.Button(label="Cancel")
+        cancel.get_style_context().add_class("droidianos-secondary")
         cancel.connect("clicked", lambda *_: self._quit())
         button_box.pack_start(cancel, False, False, 0)
 
@@ -96,26 +147,38 @@ class DesktopChooser(Gtk.Window):
             image.set_from_pixbuf(pixbuf)
         except Exception:
             image.set_from_icon_name("image-missing", Gtk.IconSize.DIALOG)
-        outer.pack_start(image, False, False, 0)
+        preview = Gtk.Frame()
+        preview.get_style_context().add_class("droidianos-preview")
+        preview.add(image)
+        outer.pack_start(preview, False, False, 0)
 
         text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         outer.pack_start(text, True, True, 0)
 
         name = Gtk.Label(label=option.name)
         name.set_xalign(0.0)
-        name.get_style_context().add_class("title-2")
+        name.get_style_context().add_class("droidianos-subtitle")
         text.pack_start(name, False, False, 0)
 
         desc = Gtk.Label(label=option.description)
         desc.set_xalign(0.0)
         desc.set_line_wrap(True)
         desc.set_max_width_chars(60)
+        desc.get_style_context().add_class("droidianos-muted")
         text.pack_start(desc, False, False, 0)
 
-        pkg = Gtk.Label(label=f"Installs: {option.packages}")
-        pkg.set_xalign(0.0)
-        pkg.get_style_context().add_class("dim-label")
-        text.pack_start(pkg, False, False, 0)
+        details = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        text.pack_start(details, False, False, 0)
+
+        for label_text, style_class in [
+            (option.session, "droidianos-chip-muted"),
+            (option.display_manager, "droidianos-chip-accent"),
+            ("Flatpak" if option.install_flatpak else "No Flatpak", "droidianos-chip"),
+        ]:
+            chip = Gtk.Label(label=label_text)
+            chip.get_style_context().add_class("droidianos-chip")
+            chip.get_style_context().add_class(style_class)
+            details.pack_start(chip, False, False, 0)
 
         return row
 
@@ -141,7 +204,9 @@ class DesktopChooser(Gtk.Window):
 
         if not self._confirm(
             "Install desktop",
-            f"Install {option.name} now?\n\nThis will install:\n{option.packages}{flatpak}\n\nThe initial GUI stack will be replaced with the selected desktop.",
+            f"Install {option.name} now?\n\nThis will install:\n{option.packages}{flatpak}\n\n"
+            "The initial GUI stack will be replaced with the selected desktop, and the chooser "
+            "will not ask again once the desktop is marked complete.",
         ):
             return
 
@@ -294,6 +359,7 @@ class DesktopChooser(Gtk.Window):
 
 
 def main() -> int:
+    load_css()
     win = DesktopChooser()
     win.show_all()
     Gtk.main()

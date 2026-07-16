@@ -6,4 +6,6 @@
 override_dh_fixperms:
 	dh_fixperms
 	chmod 0755 debian/droidianos-session-defaults/etc/xdg/labwc/autostart
+	chmod 0755 debian/droidianos-session-defaults/usr/bin/droidianos-installer
+	chmod 0755 debian/droidianos-session-defaults/usr/lib/droidianos-installer/droidianos-installer.py
 	chmod 0755 debian/droidianos-session-defaults/usr/bin/droidianos-desktop-chooser

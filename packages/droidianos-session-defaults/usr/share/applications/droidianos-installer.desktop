@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=droidianOS Install Hub
+Comment=Branded droidianOS live install entry point
+Exec=droidianos-installer
+Icon=droidianos
+Terminal=false
+Categories=System;Settings;
+Keywords=install;live;setup;droidianOS;

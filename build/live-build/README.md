@@ -10,6 +10,8 @@ sh ./build/scripts/build-iso.sh
 
 Local project packages are copied into `config/packages.chroot`.
 
+The live image also includes the branded droidianOS installer hub and the first-login desktop chooser from `droidianos-session-defaults`.
+
 The local repository is copied into:
 
 ```text
@@ -21,6 +23,8 @@ The installed system includes:
 ```text
 /etc/apt/sources.list.d/droidianos-local.list
 ```
+
+On first boot, the live-session autostart stack opens the branded installer hub on the live image and the desktop chooser on an installed system.
 
 Prerequisite:
 

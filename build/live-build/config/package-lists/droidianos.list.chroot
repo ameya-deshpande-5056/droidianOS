@@ -19,4 +19,5 @@ shared-mime-info
 pkexec
 libglib2.0-bin
 python3
+debian-installer-launcher
 droidianos-session-defaults

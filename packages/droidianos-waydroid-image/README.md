@@ -12,7 +12,7 @@ Installed components:
 - `droidianos-shared-folders.service`
 - `/usr/lib/droidianos/apply-shared-folders`
 
-The Debian Installer initializes the embedded GAPPS system and MAINLINE vendor images. First boot starts and verifies `waydroid-container.service`, then writes `/var/lib/droidianos/waydroid-firstboot-complete`.
+The installation and first-boot flow initializes the embedded GAPPS system and MAINLINE vendor images. First boot starts and verifies `waydroid-container.service`, then writes `/var/lib/droidianos/waydroid-firstboot-complete`.
 
 The GAPPS image contains Google Play services and the Google Play Store. Google may initially report the Waydroid device as uncertified; users must complete Google's device-registration process when required. At first login, the ARM setup asks for explicit consent before downloading proprietary community translation files directly to the installed machine. Intel systems use Houdini; other x86-64 systems use libndk_translation. Both paths configure and verify ARM32 and ARM64 ABIs. Downloads and installer source are revision-pinned and SHA-256 verified. The current payloads support Android 13; setup does not write ready state if the embedded image uses another Android release.
 

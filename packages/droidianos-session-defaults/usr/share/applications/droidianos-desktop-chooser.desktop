@@ -1,10 +1,11 @@
 [Desktop Entry]
 Type=Application
 Name=droidianOS Desktop Setup
-Comment=Choose and install your preferred desktop environment on first login
+Comment=Choose and install your preferred desktop environment after first boot
 Exec=droidianos-desktop-chooser
 Icon=droidianos
 Terminal=false
 Categories=System;Settings;
 OnlyShowIn=GNOME;KDE;XFCE;LXQt;LXDE;Openbox;
 X-GNOME-Autostart-enabled=true
+Keywords=desktop;setup;first boot;droidianOS;

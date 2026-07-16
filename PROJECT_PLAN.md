@@ -33,7 +33,7 @@ Linux kernel, Mesa, hardware drivers
 | Software Center | Unified install/update/remove UI for APT, Flatpak, APK, and local packages |
 | Settings app | Unified Linux and Android settings surface |
 | Update service | Unified update status and operations across APT, Flatpak, Android image, APK apps |
-| Build system | Image generation, package repository, ISO generation, CI validation |
+| Build system | Image generation, package repository, ISO generation, live installer flow, CI validation |
 
 ### Design Constraints
 
@@ -151,7 +151,8 @@ Linux kernel, Mesa, hardware drivers
 ### Phase 5: Production Image
 
 - Build signed package repository.
-- Build ISO.
+- Build branded live ISO.
+- Add live installer hub and first-login desktop chooser.
 - Add automated VM install tests.
 - Add upgrade tests.
 - Add recovery tooling.

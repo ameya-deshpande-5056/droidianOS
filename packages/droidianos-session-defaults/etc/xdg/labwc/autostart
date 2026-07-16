@@ -2,5 +2,9 @@
 
 swaybg --image /usr/share/backgrounds/droidianos/droidianos-wallpaper.png --mode fill &
 droidianos-arm-setup
-droidianos-desktop-chooser &
+if grep -qs 'boot=live' /proc/cmdline || [ -e /run/live/medium ]; then
+  droidianos-installer &
+else
+  droidianos-desktop-chooser &
+fi
 waydroid session start &
