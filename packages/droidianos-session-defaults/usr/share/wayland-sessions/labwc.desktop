@@ -1,5 +1,0 @@
-[Desktop Entry]
-Name=Labwc
-Comment=Lightweight Wayland compositor session
-Exec=labwc
-Type=Application
