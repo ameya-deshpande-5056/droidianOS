@@ -1,0 +1,159 @@
+#!/bin/sh
+set -eu
+
+SOURCE_URL="https://github.com/casualsnek/waydroid_script/archive/d5289cfd8929e86e7f0dc89ecadcef8b66930eec.tar.gz"
+SOURCE_SHA256="c9c2f216ff73146004ff609bba6805519341894f8d3de42cd2e4cc3172509711"
+SOURCE_DIRECTORY="waydroid_script-d5289cfd8929e86e7f0dc89ecadcef8b66930eec"
+CACHE_DIR="/var/cache/droidianos-arm-setup"
+DOWNLOAD_DIR="$CACHE_DIR/waydroid-script/downloads"
+STATE_DIR="/var/lib/droidianos"
+INSTALLED_MARKER="$STATE_DIR/arm-translation-installed"
+READY_MARKER="$STATE_DIR/arm-translation-ready"
+
+download_verified() {
+  url="$1"
+  sha256="$2"
+  destination="$3"
+
+  if [ -f "$destination" ] && [ "$(sha256sum "$destination" | awk '{print $1}')" = "$sha256" ]; then
+    return
+  fi
+
+  rm -f "$destination.part"
+  curl --fail --show-error --location --retry 3 --output "$destination.part" "$url"
+  if [ "$(sha256sum "$destination.part" | awk '{print $1}')" != "$sha256" ]; then
+    rm -f "$destination.part"
+    echo "ARM translation download checksum mismatch" >&2
+    exit 1
+  fi
+  mv "$destination.part" "$destination"
+}
+
+verify_runtime() {
+  translator="$1"
+  abi_list="$(waydroid shell getprop ro.product.cpu.abilist | tr -d '\r')"
+  native_bridge="$(waydroid shell getprop ro.dalvik.vm.native.bridge | tr -d '\r')"
+
+  case ",$abi_list," in
+    *,arm64-v8a,* ) ;;
+    * ) echo "Waydroid does not report ARM64 support" >&2; exit 1 ;;
+  esac
+  case ",$abi_list," in
+    *,armeabi-v7a,* ) ;;
+    * ) echo "Waydroid does not report ARM32 support" >&2; exit 1 ;;
+  esac
+
+  case "$translator:$native_bridge" in
+    libndk:libndk_translation.so|libhoudini:libhoudini.so) ;;
+    *) echo "Waydroid native bridge verification failed" >&2; exit 1 ;;
+  esac
+
+  mkdir -p "$STATE_DIR"
+  printf 'translator=%s\nsource_sha256=%s\n' "$translator" "$SOURCE_SHA256" > "$READY_MARKER"
+}
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "ARM translation setup requires root" >&2
+  exit 1
+fi
+
+action="${1:-}"
+translator="${2:-}"
+case "$translator" in
+  libndk)
+    PAYLOAD_URL="https://github.com/supremegamers/vendor_google_proprietary_ndk_translation-prebuilt/archive/68734c52556d3d7a6db34c603dd9276915c29f2f.zip"
+    PAYLOAD_SHA256="a142d1586c9eafb5edf62277110f2128bc03066179a6783bcaa33ee322e1cbd0"
+    PAYLOAD_FILENAME="libndktranslation.zip"
+    ;;
+  libhoudini)
+    PAYLOAD_URL="https://github.com/supremegamers/vendor_intel_proprietary_houdini/archive/9e77896350caccd228b36b2e1b4a994aa4bd48da.zip"
+    PAYLOAD_SHA256="b09e51f6b419c73f523a79e500d7b4be56135f717e5bd1d1d7085aea656f59cd"
+    PAYLOAD_FILENAME="libhoudini.zip"
+    ;;
+  *)
+    echo "usage: install-arm-translation [install|verify] [libndk|libhoudini]" >&2
+    exit 2
+    ;;
+esac
+
+case "$action" in
+  verify)
+    verify_runtime "$translator"
+    exit
+    ;;
+  install) ;;
+  *)
+    echo "usage: install-arm-translation [install|verify] [libndk|libhoudini]" >&2
+    exit 2
+    ;;
+esac
+
+if [ ! -s /var/lib/waydroid/waydroid.cfg ]; then
+  echo "Waydroid is not initialized" >&2
+  exit 1
+fi
+
+rm -f "$READY_MARKER"
+systemctl start waydroid-container.service
+android_release="$(waydroid shell getprop ro.build.version.release | tr -d '\r')"
+case "$android_release" in
+  13|13.*) ;;
+  *) echo "Pinned ARM translation payload does not support Android $android_release" >&2; exit 1 ;;
+esac
+
+mkdir -p "$DOWNLOAD_DIR" "$STATE_DIR"
+download_verified "$SOURCE_URL" "$SOURCE_SHA256" "$CACHE_DIR/waydroid-script.tar.gz"
+download_verified "$PAYLOAD_URL" "$PAYLOAD_SHA256" "$DOWNLOAD_DIR/$PAYLOAD_FILENAME"
+
+rm -rf "$CACHE_DIR/source"
+mkdir -p "$CACHE_DIR/source"
+tar -xzf "$CACHE_DIR/waydroid-script.tar.gz" -C "$CACHE_DIR/source"
+SCRIPT_DIR="$CACHE_DIR/source/$SOURCE_DIRECTORY"
+if [ ! -f "$SCRIPT_DIR/stuff/general.py" ]; then
+  echo "Pinned ARM translation installer source is incomplete" >&2
+  exit 1
+fi
+
+XDG_CACHE_HOME="$CACHE_DIR" PYTHONPATH="$SCRIPT_DIR" python3 - "$translator" <<'PY'
+import os
+import subprocess
+import sys
+
+from stuff.houdini import Houdini
+from stuff.ndk import Ndk
+from tools import container, images
+
+translator = sys.argv[1]
+component = Ndk("13") if translator == "libndk" else Houdini("13")
+bridge_name = "libndk_translation.so" if translator == "libndk" else "libhoudini.so"
+
+
+def install_and_verify():
+    component.install()
+    bridge = os.path.join(component.copy_dir, "system", "lib64", bridge_name)
+    if not os.path.isfile(bridge) or os.path.getsize(bridge) == 0:
+        raise RuntimeError("ARM translation bridge was not installed")
+
+
+container.stop()
+if container.use_overlayfs():
+    install_and_verify()
+else:
+    image = os.path.join(images.get_image_dir(), "system.img")
+    size_mb = os.path.getsize(image) // (1024 * 1024) + 500
+    result = subprocess.run(["e2fsck", "-y", "-f", image], check=False)
+    if result.returncode not in (0, 1, 2):
+        raise SystemExit(result.returncode)
+    subprocess.run(["resize2fs", image, f"{size_mb}M"], check=True)
+    images.mount(image, "/tmp/waydroid")
+    try:
+        install_and_verify()
+    finally:
+        images.umount("/tmp/waydroid")
+container.upgrade()
+PY
+
+grep -q '^ro.product.cpu.abilist.*arm64-v8a.*armeabi-v7a' /var/lib/waydroid/waydroid.cfg
+grep -q '^ro.dalvik.vm.native.bridge' /var/lib/waydroid/waydroid.cfg
+printf 'translator=%s\npayload_sha256=%s\n' "$translator" "$PAYLOAD_SHA256" > "$INSTALLED_MARKER"
+systemctl restart waydroid-container.service

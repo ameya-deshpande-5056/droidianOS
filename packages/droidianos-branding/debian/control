@@ -2,13 +2,12 @@ Source: droidianos-branding
 Section: misc
 Priority: optional
 Maintainer: droidianOS <maintainers@example.invalid>
-Build-Depends: debhelper-compat (= 13)
+Build-Depends: debhelper-compat (= 13), fonts-dejavu-core, librsvg2-bin
 Standards-Version: 4.6.2
 Rules-Requires-Root: no
 
 Package: droidianos-branding
 Architecture: all
-Depends: ${misc:Depends}
-Description: distribution branding skeleton
- Distribution branding package skeleton.
-
+Depends: ${misc:Depends}, desktop-base, fonts-dejavu-core, plymouth
+Description: distribution branding
+ Applies droidianOS distribution identity files.

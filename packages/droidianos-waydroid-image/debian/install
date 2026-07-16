@@ -1,7 +1,12 @@
 README.md usr/share/doc/droidianos-waydroid-image
+etc/xdg/autostart/droidianos-arm-setup.desktop etc/xdg/autostart
+usr/bin/droidianos-arm-setup usr/bin
 usr/lib/droidianos/waydroid-firstboot usr/lib/droidianos
+usr/lib/droidianos/waydroid-install usr/lib/droidianos
+usr/lib/droidianos/install-arm-translation usr/lib/droidianos
 usr/lib/droidianos/apply-shared-folders usr/lib/droidianos
 lib/systemd/system/droidianos-waydroid-firstboot.service lib/systemd/system
 usr/lib/systemd/user/droidianos-shared-folders.service usr/lib/systemd/user
 usr/lib/systemd/user-preset/90-droidianos-shared-folders.preset usr/lib/systemd/user-preset
 usr/share/droidianos/waydroid/README.md usr/share/droidianos/waydroid
+usr/share/polkit-1/actions/org.droidianos.arm-setup.policy usr/share/polkit-1/actions

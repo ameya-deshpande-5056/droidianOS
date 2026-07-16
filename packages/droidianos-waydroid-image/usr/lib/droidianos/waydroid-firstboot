@@ -2,13 +2,12 @@
 set -eu
 
 STATE_DIR="/var/lib/droidianos"
-MARKER="$STATE_DIR/waydroid-initialized"
-SYSTEM_IMAGE="/var/lib/waydroid/images/system.img"
-VENDOR_IMAGE="/var/lib/waydroid/images/vendor.img"
+INSTALL_MARKER="$STATE_DIR/waydroid-installed"
+COMPLETE_MARKER="$STATE_DIR/waydroid-firstboot-complete"
 
 mkdir -p "$STATE_DIR"
 
-if [ -f "$MARKER" ]; then
+if [ -f "$COMPLETE_MARKER" ]; then
   exit 0
 fi
 
@@ -17,14 +16,12 @@ if ! command -v waydroid >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -f "$SYSTEM_IMAGE" ] || [ ! -f "$VENDOR_IMAGE" ]; then
-  waydroid init
+if [ ! -f "$INSTALL_MARKER" ] || [ ! -s /var/lib/waydroid/waydroid.cfg ]; then
+  /usr/lib/droidianos/waydroid-install
 fi
 
-if command -v systemctl >/dev/null 2>&1; then
-  systemctl enable waydroid-container.service >/dev/null 2>&1 || true
-  systemctl start waydroid-container.service >/dev/null 2>&1 || true
-fi
+systemctl enable waydroid-container.service
+systemctl start waydroid-container.service
+systemctl is-active --quiet waydroid-container.service
 
-touch "$MARKER"
-
+touch "$COMPLETE_MARKER"

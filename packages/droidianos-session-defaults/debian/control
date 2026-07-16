@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: droidianos-session-defaults
 Architecture: all
-Depends: ${misc:Depends}, apt, ca-certificates, python3, python3-gi, gir1.2-gtk-3.0, pkexec
+Depends: ${misc:Depends}, apt, ca-certificates, droidianos-branding, gir1.2-gtk-3.0, labwc, pkexec, python3, python3-gi, swaybg, waydroid
 Description: desktop defaults for droidianOS
  Desktop defaults, MIME registrations, and launcher policies.

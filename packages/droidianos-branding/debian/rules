@@ -3,3 +3,19 @@
 %:
 	dh $@
 
+override_dh_auto_build:
+	rsvg-convert --width=640 --height=360 --output=debian/droidianos-boot.png usr/share/plymouth/themes/droidianos/droidianos-boot.svg
+	rsvg-convert --width=640 --height=192 --output=debian/droidianos-logo.png usr/share/pixmaps/droidianos-logo.svg
+	mkdir -p debian/vendor-logos
+	cp usr/share/icons/hicolor/scalable/apps/droidianos.svg debian/vendor-logos/logo.svg
+	cp usr/share/pixmaps/droidianos-logo.svg debian/vendor-logos/logo-text.svg
+	cp usr/share/pixmaps/droidianos-logo.svg debian/vendor-logos/logo-text-version.svg
+	for size in 64 128 256; do \
+		rsvg-convert --height=$$size --output=debian/vendor-logos/logo-$$size.png usr/share/icons/hicolor/scalable/apps/droidianos.svg; \
+		rsvg-convert --height=$$size --output=debian/vendor-logos/logo-text-$$size.png usr/share/pixmaps/droidianos-logo.svg; \
+		cp debian/vendor-logos/logo-text-$$size.png debian/vendor-logos/logo-text-version-$$size.png; \
+	done
+
+override_dh_auto_clean:
+	rm -rf debian/droidianos-boot.png debian/droidianos-logo.png debian/vendor-logos
+	dh_auto_clean

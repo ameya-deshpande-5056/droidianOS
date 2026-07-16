@@ -2,7 +2,7 @@
 set -e
 
 lb config noauto \
-  --distribution bookworm \
+  --distribution stable \
   --archive-areas "main contrib non-free-firmware" \
   --debootstrap-options "--include=ca-certificates" \
   --debian-installer live \

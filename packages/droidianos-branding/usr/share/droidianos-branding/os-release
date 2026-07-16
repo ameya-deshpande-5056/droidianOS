@@ -1,0 +1,11 @@
+PRETTY_NAME="droidianOS alpha"
+NAME="droidianOS"
+VERSION="alpha"
+VERSION_ID="alpha"
+ID=droidianos
+ID_LIKE=debian
+LOGO=droidianos
+ANSI_COLOR="1;36"
+HOME_URL="https://sourceforge.net/projects/droidianos/"
+SUPPORT_URL="https://sourceforge.net/projects/droidianos/support"
+BUG_REPORT_URL="https://sourceforge.net/projects/droidianos/tickets"

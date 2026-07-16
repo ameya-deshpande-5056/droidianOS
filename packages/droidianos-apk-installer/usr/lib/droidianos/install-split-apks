@@ -1,0 +1,66 @@
+#!/usr/bin/python3
+import os
+import re
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+
+def fail(message):
+    print(message, file=sys.stderr)
+    raise SystemExit(2)
+
+
+if os.geteuid() != 0:
+    fail("split APK installation requires root")
+
+if len(sys.argv) < 4:
+    fail("usage: install-split-apks TRANSACTION APK APK [APK ...]")
+
+transaction = sys.argv[1]
+if re.fullmatch(r"apk-[0-9]+", transaction) is None:
+    fail("invalid APK transaction")
+
+try:
+    invoking_uid = int(os.environ["PKEXEC_UID"])
+except (KeyError, ValueError):
+    fail("missing invoking user identity")
+
+android_paths = []
+staging_directory = None
+for argument in sys.argv[2:]:
+    supplied_path = Path(argument)
+    if supplied_path.is_symlink():
+        fail("symbolic links are not accepted")
+
+    try:
+        apk_path = supplied_path.resolve(strict=True)
+        metadata = apk_path.stat()
+    except OSError:
+        fail("staged APK does not exist")
+
+    if not stat.S_ISREG(metadata.st_mode) or metadata.st_uid != invoking_uid:
+        fail("invalid staged APK ownership or type")
+    if re.fullmatch(r"part-[0-9]{3}\.apk", apk_path.name) is None:
+        fail("invalid staged APK filename")
+
+    parent = apk_path.parent
+    if (
+        parent.name != transaction
+        or parent.parent.name != "waydroid_tmp"
+        or parent.parent.parent.name != "data"
+        or parent.parent.parent.parent.name != "waydroid"
+    ):
+        fail("APK is outside the Waydroid staging directory")
+    if staging_directory is not None and parent != staging_directory:
+        fail("APK files must share one staging directory")
+
+    staging_directory = parent
+    android_paths.append(f"/data/waydroid_tmp/{transaction}/{apk_path.name}")
+
+result = subprocess.run(
+    ["waydroid", "shell", "pm", "install-multiple", "-r", *android_paths],
+    check=False,
+)
+raise SystemExit(result.returncode)

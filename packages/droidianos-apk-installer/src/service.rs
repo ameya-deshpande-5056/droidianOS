@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::path::PathBuf;
+use std::process::{Command, Output, Stdio};
+use std::thread;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use droidianos_dbus_lite::{Connection, Message};
 
@@ -79,7 +80,7 @@ fn handle_message(
 }
 
 fn inspect_apk_json(path: &str) -> io::Result<String> {
-    droidianos_apk::inspect_apk(path).map(|metadata| metadata.to_json())
+    droidianos_apk::inspect_package(path).map(|metadata| metadata.to_json())
 }
 
 fn install_apk(
@@ -87,24 +88,52 @@ fn install_apk(
     transactions: &mut HashMap<String, Transaction>,
     path: &str,
 ) -> io::Result<String> {
-    inspect_apk_json(path)?;
-
     let id = transaction_id();
     set_transaction(connection, transactions, &id, "install", "running", 10, "Inspecting APK");
-    let staged_apk = stage_apk(path, &id)?;
+    let staging_dir = waydroid_data_home()?.join("waydroid_tmp").join(&id);
+    let prepared = match droidianos_apk::prepare_package(path, &staging_dir) {
+        Ok(prepared) => prepared,
+        Err(error) => {
+            let _ = fs::remove_dir_all(&staging_dir);
+            set_transaction(connection, transactions, &id, "install", "failed", 100, "Invalid application package");
+            return Err(error);
+        }
+    };
+    let package_name = prepared.metadata.package_name.as_deref().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidData, "APK manifest has no package name")
+    })?;
+
+    set_transaction(connection, transactions, &id, "install", "running", 30, "Starting Android");
+    if let Err(error) = ensure_waydroid_session() {
+        let _ = fs::remove_dir_all(&staging_dir);
+        set_transaction(connection, transactions, &id, "install", "failed", 100, "Android did not start");
+        return Err(error);
+    }
 
     set_transaction(connection, transactions, &id, "install", "running", 50, "Installing APK");
-    let output = Command::new("waydroid")
-        .args(["app", "install", staged_apk.to_string_lossy().as_ref()])
-        .output()?;
+    let install_result = install_prepared_package(&prepared.apk_files, &id);
+    let _ = fs::remove_dir_all(&staging_dir);
+    let output = match install_result {
+        Ok(output) => output,
+        Err(error) => {
+            set_transaction(connection, transactions, &id, "install", "failed", 100, "Installation failed");
+            return Err(error);
+        }
+    };
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
         set_transaction(connection, transactions, &id, "install", "failed", 100, "Installation failed");
         return Err(io::Error::new(
             io::ErrorKind::Other,
-            format!("waydroid app install failed: {}", stderr.trim()),
+            format!("Android package installation failed: {} {}", stdout.trim(), stderr.trim()),
         ));
+    }
+
+    if let Err(error) = verify_installed_package(package_name) {
+        set_transaction(connection, transactions, &id, "install", "failed", 100, "Installation could not be verified");
+        return Err(error);
     }
 
     let _ = Command::new("droidianos-integrationd").arg("--refresh").status();
@@ -112,32 +141,100 @@ fn install_apk(
     Ok(id)
 }
 
-fn stage_apk(path: &str, transaction_id: &str) -> io::Result<PathBuf> {
-    let source = Path::new(path);
-    let metadata = fs::metadata(source)?;
-    if !metadata.is_file() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "APK path is not a file"));
+fn install_prepared_package(apk_files: &[PathBuf], transaction_id: &str) -> io::Result<Output> {
+    if apk_files.len() == 1 {
+        return Command::new("waydroid")
+            .args(["app", "install"])
+            .arg(&apk_files[0])
+            .output();
     }
 
-    let staging_dir = cache_home()?.join("droidianos/apk-staging");
-    fs::create_dir_all(&staging_dir)?;
-    let target = staging_dir.join(format!("{}.apk", transaction_id));
-    fs::copy(source, &target)?;
-    Ok(target)
+    let mut command = Command::new("pkexec");
+    command
+        .arg("/usr/lib/droidianos/install-split-apks")
+        .arg(transaction_id);
+    for apk_file in apk_files {
+        command.arg(apk_file);
+    }
+    command.output()
 }
 
-fn cache_home() -> io::Result<PathBuf> {
-    let cache_home = match env::var_os("XDG_CACHE_HOME") {
+fn ensure_waydroid_session() -> io::Result<()> {
+    if waydroid_session_running() {
+        return Ok(());
+    }
+
+    Command::new("waydroid")
+        .args(["session", "start"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()?;
+
+    for _ in 0..120 {
+        thread::sleep(Duration::from_secs(1));
+        if waydroid_session_running() {
+            return Ok(());
+        }
+    }
+
+    Err(io::Error::new(
+        io::ErrorKind::TimedOut,
+        "Waydroid session did not become ready; a working Wayland session is required",
+    ))
+}
+
+fn waydroid_session_running() -> bool {
+    let output = match Command::new("waydroid").arg("status").output() {
+        Ok(output) => output,
+        Err(_) => return false,
+    };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    output.status.success()
+        && stdout.lines().any(|line| {
+            let mut fields = line.split_whitespace();
+            fields.next() == Some("Session:")
+                && fields.next() == Some("RUNNING")
+                && fields.next().is_none()
+        })
+}
+
+fn verify_installed_package(package_name: &str) -> io::Result<()> {
+    let output = Command::new("waydroid")
+        .args(["app", "list"])
+        .output()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    if output.status.success()
+        && stdout.lines().any(|line| {
+            line.trim()
+                .strip_prefix("packageName:")
+                .map(str::trim)
+                == Some(package_name)
+        })
+    {
+        return Ok(());
+    }
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    Err(io::Error::new(
+        io::ErrorKind::Other,
+        format!("APK installation could not be verified: {}", stderr.trim()),
+    ))
+}
+
+fn waydroid_data_home() -> io::Result<PathBuf> {
+    let data_home = match env::var_os("XDG_DATA_HOME") {
         Some(path) => PathBuf::from(path),
         None => {
             let home = env::var_os("HOME").ok_or_else(|| {
                 io::Error::new(io::ErrorKind::NotFound, "HOME is not set")
             })?;
-            PathBuf::from(home).join(".cache")
+            PathBuf::from(home).join(".local/share")
         }
     };
 
-    Ok(cache_home)
+    Ok(data_home.join("waydroid/data"))
 }
 
 fn set_transaction(

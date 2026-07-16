@@ -1,2 +1,5 @@
 #!/bin/sh
+
+[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/droidianos/desktop-chooser-complete" ] && exit 0
+
 exec /usr/lib/droidianos-desktop-chooser/droidianos-desktop-chooser.py

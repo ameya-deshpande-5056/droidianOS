@@ -1,6 +1,7 @@
 [Default Applications]
 application/vnd.android.package-archive=droidianos-apk-installer.desktop
+application/vnd.android.package-set=droidianos-apk-installer.desktop
 
 [Added Associations]
 application/vnd.android.package-archive=droidianos-apk-installer.desktop
-
+application/vnd.android.package-set=droidianos-apk-installer.desktop

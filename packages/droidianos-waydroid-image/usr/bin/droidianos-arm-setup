@@ -1,0 +1,77 @@
+#!/bin/sh
+set -eu
+
+STATE_DIR="/var/lib/droidianos"
+READY_MARKER="$STATE_DIR/arm-translation-ready"
+LOCK_DIR="${XDG_RUNTIME_DIR:-/tmp}/droidianos-arm-setup.lock"
+
+mkdir "$LOCK_DIR" 2>/dev/null || exit 0
+trap 'rmdir "$LOCK_DIR" 2>/dev/null || true' EXIT
+
+wait_for_waydroid() {
+  waydroid session start >/dev/null 2>&1 &
+  for _ in $(seq 1 120); do
+    if waydroid status 2>/dev/null | grep -q 'Session:[[:space:]]*RUNNING'; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+runtime_ready() {
+  translator="$1"
+  abi_list="$(waydroid prop get ro.product.cpu.abilist 2>/dev/null | tr -d '\r')" || return 1
+  native_bridge="$(waydroid prop get ro.dalvik.vm.native.bridge 2>/dev/null | tr -d '\r')" || return 1
+  case ",$abi_list," in *,arm64-v8a,*) ;; *) return 1 ;; esac
+  case ",$abi_list," in *,armeabi-v7a,*) ;; *) return 1 ;; esac
+  case "$translator:$native_bridge" in
+    libndk:libndk_translation.so|libhoudini:libhoudini.so) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+if [ -f "$READY_MARKER" ]; then
+  installed_translator="$(sed -n 's/^translator=//p' "$READY_MARKER" | head -n 1)"
+  if wait_for_waydroid && runtime_ready "$installed_translator"; then
+    exit 0
+  fi
+fi
+
+vendor="$(awk -F ': *' '/^vendor_id/{print $2; exit}' /proc/cpuinfo)"
+case "$vendor" in
+  GenuineIntel)
+    translator="libhoudini"
+    label="Intel Houdini"
+    ;;
+  *)
+    translator="libndk"
+    label="Google libndk_translation"
+    ;;
+esac
+
+if ! zenity --question \
+  --title="Enable ARM application support" \
+  --ok-label="Download and Enable" \
+  --cancel-label="Not Now" \
+  --width=620 \
+  --text="Enable ARM32 and ARM64 Android applications using $label?\n\nThis downloads proprietary third-party compatibility files directly to this computer. They are not distributed by droidianOS. Their upstream terms apply. Internet access is required."; then
+  exit 0
+fi
+
+if ! pkexec /usr/lib/droidianos/install-arm-translation install "$translator"; then
+  zenity --error --title="ARM application support" --text="ARM translation installation failed. No ready marker was written."
+  exit 1
+fi
+
+if ! wait_for_waydroid; then
+  zenity --error --title="ARM application support" --text="Waydroid did not start, so ARM32 and ARM64 support could not be verified."
+  exit 1
+fi
+
+if ! pkexec /usr/lib/droidianos/install-arm-translation verify "$translator"; then
+  zenity --error --title="ARM application support" --text="ARM32 and ARM64 runtime verification failed."
+  exit 1
+fi
+
+zenity --info --title="ARM application support" --text="ARM32 and ARM64 application support is enabled and verified."

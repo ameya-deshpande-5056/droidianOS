@@ -2,3 +2,4 @@ droidianOS live image.
 
 This image is generated from Debian Stable plus local droidianOS packages.
 
+The embedded Waydroid image includes Google Play services and the Google Play Store. Google device registration may be required.

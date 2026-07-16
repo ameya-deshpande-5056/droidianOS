@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+  remove|purge)
+    if command -v update-alternatives >/dev/null 2>&1; then
+      update-alternatives --remove vendor-logos /usr/share/droidianos-branding/vendor-logos || true
+      update-alternatives --remove desktop-theme /usr/share/desktop-base/droidianos-theme || true
+      update-alternatives --remove desktop-background /usr/share/desktop-base/droidianos-theme/background.svg || true
+      update-alternatives --remove desktop-login-background /usr/share/desktop-base/droidianos-theme/background.svg || true
+      update-alternatives --remove desktop-grub /usr/share/droidianos-branding/droidianos-bootloader.png || true
+      update-alternatives --remove desktop-plasma5-wallpaper /usr/share/wallpapers/droidianOS || true
+      update-alternatives --remove default.plymouth /usr/share/plymouth/themes/droidianos/droidianos.plymouth || true
+    fi
+    if command -v glib-compile-schemas >/dev/null 2>&1; then
+      glib-compile-schemas /usr/share/glib-2.0/schemas || true
+    fi
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+      gtk-update-icon-cache -q /usr/share/icons/hicolor || true
+    fi
+    if command -v update-grub >/dev/null 2>&1; then
+      update-grub || true
+    fi
+    ;;
+esac
+
+#DEBHELPER#

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+swaybg --image /usr/share/backgrounds/droidianos/droidianos-wallpaper.png --mode fill &
+droidianos-arm-setup
+droidianos-desktop-chooser &
+waydroid session start &

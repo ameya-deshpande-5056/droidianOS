@@ -1,4 +1,5 @@
 README.md usr/share/doc/droidianos-apk-installer
+usr/lib/droidianos/install-split-apks usr/lib/droidianos
 usr/lib/systemd/user/droidianos-apk-installerd.service usr/lib/systemd/user
 usr/lib/systemd/user-preset/90-droidianos-apk-installerd.preset usr/lib/systemd/user-preset
 usr/share/applications/droidianos-apk-installer.desktop usr/share/applications

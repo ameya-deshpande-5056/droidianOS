@@ -5,5 +5,8 @@
 
 override_dh_fixperms:
 	dh_fixperms
+	chmod 0755 debian/droidianos-waydroid-image/usr/bin/droidianos-arm-setup
+	chmod 0755 debian/droidianos-waydroid-image/usr/lib/droidianos/install-arm-translation
 	chmod 0755 debian/droidianos-waydroid-image/usr/lib/droidianos/waydroid-firstboot
+	chmod 0755 debian/droidianos-waydroid-image/usr/lib/droidianos/waydroid-install
 	chmod 0755 debian/droidianos-waydroid-image/usr/lib/droidianos/apply-shared-folders

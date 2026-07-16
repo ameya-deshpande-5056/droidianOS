@@ -4,5 +4,9 @@
     <comment>Application package</comment>
     <glob pattern="*.apk"/>
   </mime-type>
+  <mime-type type="application/vnd.android.package-set">
+    <comment>Split application package</comment>
+    <glob pattern="*.apks"/>
+    <glob pattern="*.apkm"/>
+  </mime-type>
 </mime-info>
-

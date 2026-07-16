@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: droidianos-waydroid-image
 Architecture: all
-Depends: ${misc:Depends}, python3, systemd, waydroid
-Description: Waydroid image customization skeleton
- Initializes Waydroid on first boot for droidianOS.
+Depends: ${misc:Depends}, curl, e2fsprogs, mount, pkexec, python3, python3-requests, python3-tqdm, systemd, tar, waydroid, zenity
+Description: preinstalled Waydroid image integration
+ Initializes embedded Waydroid images during droidianOS installation.

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=droidianOS Wallpaper
+Exec=feh --no-fehbg --bg-fill /usr/share/backgrounds/droidianos/droidianos-wallpaper.png
+OnlyShowIn=Openbox;
+NoDisplay=true

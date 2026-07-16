@@ -3,7 +3,6 @@ Type=Application
 Name=Settings
 Comment=Manage droidianOS settings
 Exec=droidianos-settings
-Icon=preferences-system
+Icon=droidianos
 Categories=Settings;System;
 StartupNotify=true
-

@@ -1,0 +1,9 @@
+usr/share/backgrounds/droidianos/droidianos-wallpaper.png usr/share/wallpapers/droidianOS/contents/images/3840x2160.png
+usr/share/desktop-base/droidianos-theme/background.svg usr/share/desktop-base/droidianos-theme/login/background.svg
+usr/share/desktop-base/droidianos-theme/background.svg usr/share/desktop-base/droidianos-theme/wallpaper/contents/images/1920x1080.svg
+usr/share/desktop-base/droidianos-theme/background.svg usr/share/desktop-base/droidianos-theme/lockscreen/contents/images/1920x1080.svg
+usr/share/wallpapers/droidianOS/metadata.desktop usr/share/desktop-base/droidianos-theme/wallpaper/metadata.desktop
+usr/share/wallpapers/droidianOS/metadata.desktop usr/share/desktop-base/droidianos-theme/lockscreen/metadata.desktop
+usr/share/droidianos-branding/droidianos-bootloader.png usr/share/desktop-base/droidianos-theme/grub/grub-4x3.png
+usr/share/droidianos-branding/droidianos-bootloader.png usr/share/desktop-base/droidianos-theme/grub/grub-16x9.png
+usr/share/desktop-base/droidianos-theme/grub_background.sh usr/share/desktop-base/droidianos-theme/grub/grub_background.sh

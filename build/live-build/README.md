@@ -25,3 +25,4 @@ The installed system includes:
 Prerequisite:
 
 - `waydroid` must be available from an APT source during the live-build run.
+- `curl`, `jq`, `sha256sum`, and `unzip` fetch and verify the latest official x86_64 Waydroid GAPPS system and MAINLINE vendor images.

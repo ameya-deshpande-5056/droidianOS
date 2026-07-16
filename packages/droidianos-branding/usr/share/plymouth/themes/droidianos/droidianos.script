@@ -1,0 +1,69 @@
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+wallpaper_image = Image("droidianos-wallpaper.png");
+wallpaper_scale = screen_width / wallpaper_image.GetWidth();
+if (screen_height / wallpaper_image.GetHeight() > wallpaper_scale) {
+  wallpaper_scale = screen_height / wallpaper_image.GetHeight();
+}
+wallpaper_width = Math.Int(wallpaper_image.GetWidth() * wallpaper_scale);
+wallpaper_height = Math.Int(wallpaper_image.GetHeight() * wallpaper_scale);
+wallpaper_image = wallpaper_image.Scale(wallpaper_width, wallpaper_height);
+wallpaper_sprite = Sprite(wallpaper_image);
+wallpaper_sprite.SetX((screen_width - wallpaper_width) / 2);
+wallpaper_sprite.SetY((screen_height - wallpaper_height) / 2);
+wallpaper_sprite.SetZ(-100);
+
+boot_width = Math.Int(screen_width * 0.55);
+if (boot_width > 720) boot_width = 720;
+if (boot_width < 360) boot_width = screen_width - 40;
+boot_height = Math.Int(boot_width * 0.5625);
+boot_image = Image("droidianos-boot.png");
+boot_image = boot_image.Scale(boot_width, boot_height);
+boot_sprite = Sprite(boot_image);
+boot_x = (screen_width - boot_width) / 2;
+boot_y = (screen_height - boot_height) / 2;
+boot_sprite.SetX(boot_x);
+boot_sprite.SetY(boot_y);
+boot_sprite.SetZ(0);
+
+bar_width = Math.Int(boot_width * 0.3125);
+bar_height = 4;
+bar_x = (screen_width - bar_width) / 2;
+bar_y = boot_y + Math.Int(boot_height * 0.79);
+
+bar_bg_image = Image(bar_width, bar_height);
+bar_bg_image.Fill(0.16, 0.26, 0.29, 0.72);
+bar_bg_sprite = Sprite(bar_bg_image);
+bar_bg_sprite.SetX(bar_x);
+bar_bg_sprite.SetY(bar_y);
+bar_bg_sprite.SetZ(8);
+
+bar_fg_image = Image(1, bar_height);
+bar_fg_image.Fill(0.37, 0.91, 0.96, 1.0);
+bar_fg_sprite = Sprite(bar_fg_image);
+bar_fg_sprite.SetX(bar_x);
+bar_fg_sprite.SetY(bar_y);
+bar_fg_sprite.SetZ(9);
+
+animation_step = 0;
+animation_direction = 1;
+
+fun refresh_callback() {
+  animation_step += animation_direction;
+  if (animation_step >= 20) animation_direction = -1;
+  if (animation_step <= 0) animation_direction = 1;
+  boot_sprite.SetOpacity(0.90 + animation_step * 0.005);
+  boot_sprite.SetY(boot_y - animation_step * 0.10);
+}
+
+fun boot_progress_callback(duration, progress) {
+  width = Math.Int(bar_width * progress);
+  if (width < 1) width = 1;
+  bar_fg_image = Image(width, bar_height);
+  bar_fg_image.Fill(0.37, 0.91, 0.96, 1.0);
+  bar_fg_sprite.SetImage(bar_fg_image);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetBootProgressFunction(boot_progress_callback);

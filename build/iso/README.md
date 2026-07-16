@@ -7,6 +7,9 @@ Required host tools:
 - `live-build`
 - `dpkg-dev`
 - `apt-utils`
+- `curl`
+- `jq`
+- `unzip`
 
 Build command:
 
@@ -17,6 +20,7 @@ sh ./build/scripts/build-iso.sh
 Current prerequisite:
 
 - The `waydroid` package must be available to APT during the live-build run.
+- The latest official Waydroid GAPPS system and MAINLINE vendor images must be reachable during the build.
 
 Release packaging:
 

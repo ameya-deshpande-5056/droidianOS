@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+STATE_DIR="/var/lib/droidianos"
+SYSTEM_IMAGE="/etc/waydroid-extra/images/system.img"
+VENDOR_IMAGE="/etc/waydroid-extra/images/vendor.img"
+
+if [ ! -s "$SYSTEM_IMAGE" ] || [ ! -s "$VENDOR_IMAGE" ]; then
+  echo "Preinstalled Waydroid images are missing" >&2
+  exit 1
+fi
+
+waydroid init -f -s GAPPS
+
+if [ ! -s /var/lib/waydroid/waydroid.cfg ]; then
+  echo "Waydroid initialization did not create its configuration" >&2
+  exit 1
+fi
+
+systemctl enable waydroid-container.service
+mkdir -p "$STATE_DIR"
+touch "$STATE_DIR/waydroid-installed"

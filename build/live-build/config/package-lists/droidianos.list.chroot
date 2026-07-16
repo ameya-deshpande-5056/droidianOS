@@ -1,8 +1,8 @@
-gdm3
 lightdm
 lightdm-gtk-greeter
-sddm
-openbox
+desktop-base
+labwc
+swaybg
 xorg
 ca-certificates
 systemd
@@ -10,6 +10,7 @@ network-manager
 pipewire
 wireplumber
 flatpak
+plymouth
 waydroid
 zenity
 libnotify-bin

@@ -31,7 +31,7 @@ OPTIONS = [
     DesktopOption("XFCE", "Lightweight, stable, and fast on modest hardware.", "/usr/share/droidianos-desktop-chooser/previews/xfce.png", "task-xfce-desktop", "openbox lightdm lightdm-gtk-greeter gdm3 sddm", "startxfce4", "lightdm", False),
     DesktopOption("LXQt", "Very light Qt-based desktop with a clean panel setup.", "/usr/share/droidianos-desktop-chooser/previews/lxqt.png", "task-lxqt-desktop", "openbox lightdm lightdm-gtk-greeter gdm3", "startlxqt", "sddm", False),
     DesktopOption("LXDE", "Classic ultra-light desktop for low-resource systems.", "/usr/share/droidianos-desktop-chooser/previews/lxde.png", "task-lxde-desktop", "openbox lightdm lightdm-gtk-greeter gdm3 sddm", "startlxde", "lightdm", False),
-    DesktopOption("Openbox", "Minimal window manager for a very small footprint.", "/usr/share/droidianos-desktop-chooser/previews/openbox.png", "openbox lxterminal", "", "openbox-session", "lightdm", True),
+    DesktopOption("Openbox", "Minimal window manager for a very small footprint.", "/usr/share/droidianos-desktop-chooser/previews/openbox.png", "openbox lxterminal feh", "", "openbox-session", "lightdm", True),
 ]
 
 

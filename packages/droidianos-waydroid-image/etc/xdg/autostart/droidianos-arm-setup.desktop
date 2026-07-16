@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=ARM Application Support Setup
+Exec=droidianos-arm-setup
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

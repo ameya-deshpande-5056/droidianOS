@@ -6,4 +6,4 @@ Current policy:
 
 - Hide direct Waydroid launcher entries from the desktop application menu.
 - Show a first-login desktop chooser that installs the selected desktop environment, shows a screenshot preview, and can optionally install Flatpak support.
-- The ISO only includes the base GUI and chooser; the selected desktop is downloaded and installed after first login.
+- The ISO includes Labwc as its lightweight Wayland base GUI; the selected desktop is downloaded and installed after first login.

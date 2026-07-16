@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: droidianos-settings
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, libglib2.0-bin, droidianos-apk-installer, droidianos-integrationd, waydroid, zenity
+Depends: ${misc:Depends}, ${shlibs:Depends}, libglib2.0-bin, droidianos-apk-installer, droidianos-branding, droidianos-integrationd, waydroid, zenity
 Description: settings and permissions services
  Settings MVP and droidianOS permissions service.

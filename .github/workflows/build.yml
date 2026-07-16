@@ -13,7 +13,7 @@ jobs:
   build-packages:
     runs-on: ubuntu-latest
     container: &debian_container
-      image: debian:bookworm
+      image: debian:stable
       options: --privileged
 
     steps:
@@ -35,7 +35,9 @@ jobs:
             debhelper \
             devscripts \
             dpkg-dev \
+            fonts-dejavu-core \
             libdbus-1-dev \
+            librsvg2-bin \
             rustc
 
       - name: Build packages
@@ -110,10 +112,14 @@ jobs:
           apt-get update
           apt-get install -y \
             apt-utils \
+            curl \
+            gnupg \
             isolinux \
+            jq \
             live-build \
             squashfs-tools \
             syslinux-common \
+            unzip \
             xorriso
 
       - name: Download package artifacts
@@ -129,23 +135,31 @@ jobs:
           path: build/artifacts/repo
 
       - name: Configure Waydroid APT archive
-        env:
-          WAYDROID_APT_SOURCE: ${{ secrets.WAYDROID_APT_SOURCE }}
-          WAYDROID_APT_KEY_ASC: ${{ secrets.WAYDROID_APT_KEY_ASC }}
         run: |
-          if [ -z "${WAYDROID_APT_SOURCE:-}" ]; then
-            echo "WAYDROID_APT_SOURCE secret is required because the ISO package list includes waydroid." >&2
+          . /etc/os-release
+          DEBIAN_CODENAME="${VERSION_CODENAME:-}"
+          if [ -z "$DEBIAN_CODENAME" ]; then
+            echo "Unable to determine the current Debian Stable codename." >&2
+            exit 1
+          fi
+
+          WAYDROID_REPO="https://repo.waydro.id"
+          if ! curl --fail --silent --show-error --location --output /dev/null "$WAYDROID_REPO/dists/$DEBIAN_CODENAME/Release"; then
+            echo "Waydroid does not provide an APT archive for Debian $DEBIAN_CODENAME." >&2
             exit 1
           fi
 
           mkdir -p build/live-build/config/archives
-          printf '%s\n' "$WAYDROID_APT_SOURCE" > build/live-build/config/archives/waydroid.list.chroot
-          printf '%s\n' "$WAYDROID_APT_SOURCE" > build/live-build/config/archives/waydroid.list.binary
+          printf 'deb %s/ %s main\n' "$WAYDROID_REPO" "$DEBIAN_CODENAME" > build/live-build/config/archives/waydroid.list.chroot
+          cp build/live-build/config/archives/waydroid.list.chroot build/live-build/config/archives/waydroid.list.binary
 
-          if [ -n "${WAYDROID_APT_KEY_ASC:-}" ]; then
-            printf '%s\n' "$WAYDROID_APT_KEY_ASC" > build/live-build/config/archives/waydroid.key.chroot
-            printf '%s\n' "$WAYDROID_APT_KEY_ASC" > build/live-build/config/archives/waydroid.key.binary
-          fi
+          KEY_DIR="$(mktemp -d)"
+          chmod 700 "$KEY_DIR"
+          curl --fail --silent --show-error --location "$WAYDROID_REPO/waydroid.gpg" --output "$KEY_DIR/waydroid.gpg"
+          gpg --batch --quiet --homedir "$KEY_DIR" --import "$KEY_DIR/waydroid.gpg"
+          gpg --batch --quiet --homedir "$KEY_DIR" --armor --export > build/live-build/config/archives/waydroid.key.chroot
+          rm -rf "$KEY_DIR"
+          cp build/live-build/config/archives/waydroid.key.chroot build/live-build/config/archives/waydroid.key.binary
 
       - name: Build ISO
         run: sh ./build/scripts/build-iso.sh

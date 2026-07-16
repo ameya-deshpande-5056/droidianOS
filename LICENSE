@@ -19,3 +19,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Third-Party Components and Distribution Images
+------------------------------------------------
+
+The MIT License above applies only to original droidianOS repository code,
+documentation, and artwork unless a file states otherwise. It does not
+relicense third-party software, firmware, fonts, trademarks, or binary images
+that the build system downloads, packages, or references.
+
+The generated droidianOS distribution includes or can install independently
+licensed components, including Debian packages, the Linux kernel, Waydroid,
+LineageOS-derived Android images, Android Open Source Project components,
+desktop environments, and fonts. Their respective copyright notices and
+license terms continue to apply. Installed Debian package notices are normally
+available under /usr/share/doc/<package>/copyright.
+
+The embedded upstream Waydroid GAPPS image contains proprietary Google
+software, including Google Play services and the Google Play Store. Those
+components are not licensed under the MIT License and no rights to distribute,
+modify, or use them are granted by this file. Use and redistribution are
+subject to the applicable Google and upstream image terms. Anyone distributing
+a droidianOS ISO is responsible for confirming that they have all required
+rights and for satisfying all applicable notices and license obligations.
+
+Optional ARM translation setup downloads proprietary third-party compatibility
+payloads only after user consent. Those payloads are not part of the droidianOS
+repository or its MIT-licensed work and remain subject to their upstream terms.
+
+Debian, Android, Google, Google Play, Waydroid, LineageOS, and all other
+third-party names and marks are property of their respective owners. Their use
+for identification does not imply affiliation or endorsement.

@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: droidianos-apk-installer
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, desktop-file-utils, droidianos-integrationd, policykit-1, shared-mime-info, unzip, waydroid, zenity
+Depends: ${misc:Depends}, ${shlibs:Depends}, desktop-file-utils, droidianos-integrationd, pkexec, policykit-1, python3, shared-mime-info, unzip, waydroid, zenity
 Description: APK installer backend
  APK metadata inspection, installation backend, and desktop file handler.

@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=droidianOS
+Description=droidianOS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/droidianos
+ScriptFile=/usr/share/plymouth/themes/droidianos/droidianos.script

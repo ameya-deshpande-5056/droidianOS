@@ -20,7 +20,7 @@ fn run() -> io::Result<()> {
     let path = env::args().nth(1).ok_or_else(|| {
         io::Error::new(io::ErrorKind::InvalidInput, "missing APK path")
     })?;
-    let metadata = droidianos_apk::inspect_apk(&path)?;
+    let metadata = droidianos_apk::inspect_package(&path)?;
     let summary = metadata_summary(&path, &metadata);
 
     if !confirm_install(&summary)? {
@@ -128,4 +128,3 @@ fn show_error(title: &str, text: &str) {
         .args(["--error", "--title", title, "--text", text])
         .status();
 }
-

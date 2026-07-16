@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+for config in binary/isolinux/*.cfg binary/boot/grub/*.cfg; do
+  [ -f "$config" ] || continue
+  sed -i \
+    -e 's/Boot menu/droidianOS alpha/g' \
+    -e 's/Live system/droidianOS alpha/g' \
+    -e 's/Debian Installer/droidianOS Installer/g' \
+    "$config"
+done

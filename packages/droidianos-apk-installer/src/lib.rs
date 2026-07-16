@@ -1,7 +1,8 @@
 use std::fs;
 use std::io;
-use std::path::Path;
-use std::process::Command;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const RES_STRING_POOL_TYPE: u16 = 0x0001;
 const RES_XML_START_ELEMENT_TYPE: u16 = 0x0102;
@@ -14,11 +15,17 @@ const TYPE_REFERENCE: u8 = 0x01;
 #[derive(Debug)]
 pub struct ApkMetadata {
     pub package_name: Option<String>,
+    pub split_name: Option<String>,
     pub version_name: Option<String>,
     pub version_code: Option<String>,
     pub app_label: Option<String>,
     pub permissions: Vec<Permission>,
     pub apk_size_bytes: u64,
+}
+
+pub struct PreparedPackage {
+    pub metadata: ApkMetadata,
+    pub apk_files: Vec<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -47,6 +54,7 @@ impl ApkMetadata {
     pub fn to_json(&self) -> String {
         let mut json = String::from("{");
         push_json_field(&mut json, "package", self.package_name.as_deref(), false);
+        push_json_field(&mut json, "split", self.split_name.as_deref(), true);
         push_json_field(&mut json, "version_name", self.version_name.as_deref(), true);
         push_json_field(&mut json, "version_code", self.version_code.as_deref(), true);
         push_json_field(&mut json, "app_label", self.app_label.as_deref(), true);
@@ -68,6 +76,39 @@ impl ApkMetadata {
         json.push_str("]}");
         json
     }
+}
+
+pub fn inspect_package<P: AsRef<Path>>(path: P) -> io::Result<ApkMetadata> {
+    let path = path.as_ref();
+    if extension(path) == Some("apk") {
+        return inspect_apk(path);
+    }
+
+    let temp_dir = temporary_directory()?;
+    let result = prepare_package(path, &temp_dir).map(|prepared| prepared.metadata);
+    let _ = fs::remove_dir_all(&temp_dir);
+    result
+}
+
+pub fn prepare_package<P: AsRef<Path>, Q: AsRef<Path>>(
+    source: P,
+    output_dir: Q,
+) -> io::Result<PreparedPackage> {
+    let source = source.as_ref();
+    let output_dir = output_dir.as_ref();
+    fs::create_dir_all(output_dir)?;
+
+    let apk_files = match extension(source) {
+        Some("apk") => {
+            let target = output_dir.join("base.apk");
+            fs::copy(source, &target)?;
+            vec![target]
+        }
+        Some("apks") | Some("apkm") => extract_apk_archive(source, output_dir)?,
+        _ => return Err(invalid_data("unsupported Android package format")),
+    };
+
+    validate_apk_set(apk_files)
 }
 
 pub fn inspect_apk<P: AsRef<Path>>(path: P) -> io::Result<ApkMetadata> {
@@ -100,6 +141,7 @@ fn extract_manifest(path: &Path) -> io::Result<Vec<u8>> {
 fn metadata_from_elements(elements: Vec<Element>, apk_size_bytes: u64) -> ApkMetadata {
     let mut metadata = ApkMetadata {
         package_name: None,
+        split_name: None,
         version_name: None,
         version_code: None,
         app_label: None,
@@ -111,6 +153,7 @@ fn metadata_from_elements(elements: Vec<Element>, apk_size_bytes: u64) -> ApkMet
         match element.name.as_str() {
             "manifest" => {
                 metadata.package_name = attr_value(&element, "package");
+                metadata.split_name = attr_value(&element, "split").filter(|value| !value.is_empty());
                 metadata.version_name = attr_value(&element, "versionName");
                 metadata.version_code = attr_value(&element, "versionCode");
             }
@@ -136,6 +179,132 @@ fn metadata_from_elements(elements: Vec<Element>, apk_size_bytes: u64) -> ApkMet
         .permissions
         .dedup_by(|left, right| left.id.as_str() == right.id.as_str());
     metadata
+}
+
+fn extract_apk_archive(source: &Path, output_dir: &Path) -> io::Result<Vec<PathBuf>> {
+    let output = Command::new("unzip").arg("-Z1").arg(source).output()?;
+    if !output.status.success() {
+        return Err(invalid_data("failed to list split APK archive"));
+    }
+
+    let listing = String::from_utf8(output.stdout)
+        .map_err(|_| invalid_data("split APK archive contains invalid filenames"))?;
+    let entries: Vec<&str> = listing
+        .lines()
+        .filter(|entry| entry.to_ascii_lowercase().ends_with(".apk"))
+        .collect();
+
+    if entries.is_empty() {
+        return Err(invalid_data("split APK archive contains no APK files"));
+    }
+    if entries.len() > 256 {
+        return Err(invalid_data("split APK archive contains too many APK files"));
+    }
+
+    let mut apk_files = Vec::with_capacity(entries.len());
+    for (index, entry) in entries.iter().enumerate() {
+        let target = output_dir.join(format!("part-{:03}.apk", index));
+        let mut child = Command::new("unzip")
+            .arg("-p")
+            .arg(source)
+            .arg(entry)
+            .stdout(Stdio::piped())
+            .spawn()?;
+        let mut archive_output = child
+            .stdout
+            .take()
+            .ok_or_else(|| invalid_data("failed to read split APK archive"))?;
+        let mut target_file = fs::File::create(&target)?;
+        io::copy(&mut archive_output, &mut target_file)?;
+
+        if !child.wait()?.success() || fs::metadata(&target)?.len() == 0 {
+            return Err(invalid_data("failed to extract split APK"));
+        }
+        apk_files.push(target);
+    }
+
+    Ok(apk_files)
+}
+
+fn validate_apk_set(apk_files: Vec<PathBuf>) -> io::Result<PreparedPackage> {
+    let mut metadata = Vec::with_capacity(apk_files.len());
+    let mut package_name: Option<String> = None;
+    let mut base_index: Option<usize> = None;
+    let mut total_size = 0u64;
+
+    for (index, apk_file) in apk_files.iter().enumerate() {
+        let current = inspect_apk(apk_file)?;
+        let current_package = current
+            .package_name
+            .as_deref()
+            .ok_or_else(|| invalid_data("APK manifest has no package name"))?;
+
+        if let Some(expected) = package_name.as_deref() {
+            if current_package != expected {
+                return Err(invalid_data("split APK archive contains multiple packages"));
+            }
+        } else {
+            package_name = Some(current_package.to_string());
+        }
+
+        if current.split_name.is_none() {
+            if base_index.replace(index).is_some() {
+                return Err(invalid_data("split APK archive contains multiple base APKs"));
+            }
+        }
+
+        total_size = total_size.saturating_add(current.apk_size_bytes);
+        metadata.push(current);
+    }
+
+    let base_index = base_index.ok_or_else(|| invalid_data("split APK archive has no base APK"))?;
+    let mut base_metadata = metadata.swap_remove(base_index);
+    base_metadata.apk_size_bytes = total_size;
+
+    Ok(PreparedPackage {
+        metadata: base_metadata,
+        apk_files,
+    })
+}
+
+fn extension(path: &Path) -> Option<&str> {
+    path.extension().and_then(|value| value.to_str()).map(|value| {
+        if value.eq_ignore_ascii_case("apk") {
+            "apk"
+        } else if value.eq_ignore_ascii_case("apks") {
+            "apks"
+        } else if value.eq_ignore_ascii_case("apkm") {
+            "apkm"
+        } else {
+            ""
+        }
+    }).filter(|value| !value.is_empty())
+}
+
+fn temporary_directory() -> io::Result<PathBuf> {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0);
+
+    for attempt in 0..100u32 {
+        let path = std::env::temp_dir().join(format!(
+            "droidianos-apk-{}-{}-{}",
+            std::process::id(),
+            timestamp,
+            attempt
+        ));
+        match fs::create_dir(&path) {
+            Ok(()) => return Ok(path),
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(error),
+        }
+    }
+
+    Err(io::Error::new(
+        io::ErrorKind::AlreadyExists,
+        "failed to create APK inspection directory",
+    ))
 }
 
 fn attr_value(element: &Element, name: &str) -> Option<String> {

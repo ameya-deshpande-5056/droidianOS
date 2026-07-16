@@ -1,2 +1,21 @@
 README.md usr/share/doc/droidianos-branding
-
+etc/lightdm/lightdm-gtk-greeter.conf.d/50-droidianos-branding.conf etc/lightdm/lightdm-gtk-greeter.conf.d
+usr/share/backgrounds/droidianos/droidianos-wallpaper.png usr/share/backgrounds/droidianos
+usr/share/desktop-base/droidianos-theme/background.svg usr/share/desktop-base/droidianos-theme
+usr/share/desktop-base/droidianos-theme/grub_background.sh usr/share/desktop-base/droidianos-theme
+usr/share/glib-2.0/schemas/50_droidianos-branding.gschema.override usr/share/glib-2.0/schemas
+usr/share/icons/hicolor/scalable/apps/droidianos.svg usr/share/icons/hicolor/scalable/apps
+usr/share/pixmaps/droidianos-logo.svg usr/share/pixmaps
+debian/droidianos-logo.png usr/share/plymouth/themes/droidianos
+debian/droidianos-boot.png usr/share/plymouth/themes/droidianos
+usr/share/plymouth/themes/droidianos/droidianos-wallpaper.png usr/share/plymouth/themes/droidianos
+usr/share/plymouth/themes/droidianos/droidianos-boot.svg usr/share/plymouth/themes/droidianos
+usr/share/plymouth/themes/droidianos/droidianos.plymouth usr/share/plymouth/themes/droidianos
+usr/share/plymouth/themes/droidianos/droidianos.script usr/share/plymouth/themes/droidianos
+usr/share/droidianos-branding/os-release usr/share/droidianos-branding
+usr/share/droidianos-branding/issue usr/share/droidianos-branding
+usr/share/droidianos-branding/issue.net usr/share/droidianos-branding
+usr/share/droidianos-branding/motd usr/share/droidianos-branding
+usr/share/droidianos-branding/droidianos-bootloader.png usr/share/droidianos-branding
+usr/share/wallpapers/droidianOS/metadata.desktop usr/share/wallpapers/droidianOS
+debian/vendor-logos usr/share/droidianos-branding
